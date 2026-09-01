@@ -132,6 +132,7 @@ function validateMut(){
   const box = $('#mutBox'), out = $('#mutResult'), gen = $('#genBox');
   gen.innerHTML=''; $('#dl').style.display='none';
   const rw=$('#runWrap'); if(rw) rw.style.display='none';
+  const rm=$('#runMsg'); if(rm){ rm.style.display='none'; rm.innerHTML=''; }
   const m = raw.match(/^([A-Z])(\d+)([A-Z])$/);
   if(!m){ box.className='input'; out.className='msg';
     out.textContent='형식에 맞게 입력해 주세요 — 예: R62H'; return; }
@@ -167,7 +168,8 @@ function validateMut(){
 }
 
 const AA={A:'Ala',R:'Arg',N:'Asn',D:'Asp',C:'Cys',Q:'Gln',E:'Glu',G:'Gly',H:'His',
-  I:'Ile',L:'Leu',K:'Lys',M:'Met',F:'Phe',P:'Pro',S:'Ser',T:'Thr',W:'Trp',Y:'Tyr',V:'Val'};
+  I:'Ile',L:'Leu',K:'Lys',M:'Met',F:'Phe',P:'Pro',S:'Ser',T:'Thr',W:'Trp',Y:'Tyr',V:'Val',
+  U:'Sec',O:'Pyl',X:'Xaa',B:'Asx',Z:'Glx'};
 
 function buildSequences(pos, wt, mut){
   const full = currentSeq;
@@ -181,14 +183,24 @@ function buildSequences(pos, wt, mut){
   let a=1, b=full.length, note='전장';
   if(useDom && dom){ a=dom.location.start.value; b=dom.location.end.value;
     note=`${dom.description} ${a}–${b}`; }
+  else if(useDom && !dom){ note='전장 — 해당 위치를 포함하는 도메인 주석이 없습니다'; }
   const sW = full.slice(a-1,b), sM = mutSeq.slice(a-1,b), idx = pos-a;
+
+  // 비표준 잔기(셀레노시스테인 U, 피롤라이신 O)는 예측 도구가 처리하지 못한다
+  const NONSTD = {U:'셀레노시스테인(Sec)', O:'피롤라이신(Pyl)'};
+  const found = [...new Set([...sW].filter(c=>NONSTD[c]))];
+  const nsWarn = found.length ? `
+    <div class="msg warn" style="margin-top:11px"><b>비표준 잔기 포함</b> —
+      ${found.map(c=>`${NONSTD[c]} <code>${c}</code>`).join(', ')} 가 서열에 존재합니다.
+      AlphaFold·Boltz-2 는 표준 20종 아미노산만 처리하므로 치환이 필요합니다
+      (예: Sec → Cys). 결정구조 다수도 같은 이유로 치환체를 사용합니다.</div>` : '';
 
   const hl = (s,i,c)=>s.slice(0,i)+`<b class="hl">${c}</b>`+s.slice(i+1);
   $('#genBox').innerHTML = `
-    <div class="seqrow"><span class="tag">구간</span> <span class="mono">${note} · ${sW.length} aa</span></div>
+    <div class="chipline"><span class="tag">구간</span> <span class="mono">${note} · ${sW.length} aa</span></div>
     <div class="seqlbl">야생형</div><div class="seq">${hl(sW,idx,wt)}</div>
     <div class="seqlbl">변이형 ${label}</div><div class="seq">${hl(sM,idx,mut)}</div>
-    <div class="seqrow"><span class="tag">상이 잔기</span> <span class="mono">1개 (위치 ${pos})</span></div>`;
+    <div class="chipline"><span class="tag">상이 잔기</span> <span class="mono">1개 (위치 ${pos})</span></div>${nsWarn}`;
 
   $('#dl').style.display='flex';
   $('#runWrap').style.display='block';
@@ -460,8 +472,14 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $$('[data-goto]').forEach(b=>b.onclick=()=>gotoScreen(b.dataset.goto));
   const rb=$('#runBtn'); if(rb) rb.onclick=()=>{
     const g=Object.keys(CASES).find(k=>CASES[k].acc===currentAcc);
-    if(g) window._curGene=g;
-    gotoScreen('s3');
+    if(g){ window._curGene=g; gotoScreen('s3'); return; }
+    // 사전 산출 결과가 없는 입력 — 다른 사례의 결과를 보여주지 않는다
+    $('#runMsg').innerHTML =
+      `<b>사전 산출 결과가 없습니다.</b><br>`
+      + `구조 예측 실행은 GPU 가 필요하여 본 데모에 포함되지 않았습니다. `
+      + `위 입력 파일을 내려받아 AlphaFold Server 또는 Boltz-2 에서 예측한 뒤 결과를 분석하십시오.`
+      + `<br><span class="muted">수록 사례: CD33 P20138 · PILRA Q9UKJ1 · TREM2 Q9NZC2</span>`;
+    $('#runMsg').style.display='block';
   };
   $$('.casebtn').forEach(b=>b.onclick=()=>{
     $$('.casebtn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -471,6 +489,9 @@ window.addEventListener('DOMContentLoaded', ()=>{
   const want=new URLSearchParams(location.search).get('s')
             || (location.hash||'').replace('#','');
   if(want) gotoScreen(want);
+  const qp=new URLSearchParams(location.search);
+  if(qp.get('acc')) $('#acc').value=qp.get('acc').toUpperCase();
+  if(qp.get('mut')) $('#mut').value=qp.get('mut').toUpperCase();
   // 화면 2 진입 시 기본 사례를 자동 조회 (첫 화면이 빈 상태로 보이지 않게)
   if(want==='s2' || !want) doLookup();
 
