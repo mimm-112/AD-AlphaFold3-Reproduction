@@ -416,7 +416,8 @@ function initNav(){
     $$('.screen').forEach(x=>x.classList.remove('on'));
     a.classList.add('on'); $('#'+a.dataset.s).classList.add('on');
     window.scrollTo(0,0);
-    if(a.dataset.s==='s3') renderStructureAxis(window._curGene||'CD33');
+    if(a.dataset.s==='s3'){ if(window._curGene==='__USER__') renderUserResult();
+                            else renderStructureAxis(window._curGene||'CD33'); }
     if(a.dataset.s==='s4') renderBindingAxis();
     if(a.dataset.s==='s5') renderReport();
   });
@@ -457,7 +458,8 @@ function gotoScreen(id){
   $$('.screen').forEach(x=>x.classList.remove('on'));
   document.getElementById(id).classList.add('on');
   const na=$(`nav a[data-s="${id}"]`); if(na) na.classList.add('on');
-  if(id==='s3') renderStructureAxis(window._curGene||'CD33');
+  if(id==='s3'){ if(window._curGene==='__USER__') renderUserResult();
+                 else renderStructureAxis(window._curGene||'CD33'); }
   if(id==='s4') renderBindingAxis();
   if(id==='s5') renderReport();
 }
@@ -483,8 +485,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   };
   $$('.casebtn').forEach(b=>b.onclick=()=>{
     $$('.casebtn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
-    renderStructureAxis(b.dataset.g);
+    window._curGene=b.dataset.g;
+    if(b.dataset.g==='__USER__') renderUserResult(); else renderStructureAxis(b.dataset.g);
   });
+  initUpload();
   // ?s=s3 또는 #s3 으로 특정 화면 진입 (캡처·딥링크용)
   const want=new URLSearchParams(location.search).get('s')
             || (location.hash||'').replace('#','');
@@ -505,3 +509,135 @@ window.addEventListener('DOMContentLoaded', ()=>{
     window.scrollTo(0,0); doLookup();
   });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   결과 업로드 → 브라우저에서 편차 계산 및 검정
+   ══════════════════════════════════════════════════════════════ */
+let UPLOAD = null;   // {groups, keys}
+
+function initUpload(){
+  const drop=$('#drop'), inp=$('#zipInput');
+  if(!drop) return;
+  drop.onclick = ()=>inp.click();
+  drop.ondragover = e=>{e.preventDefault(); drop.classList.add('over');};
+  drop.ondragleave = ()=>drop.classList.remove('over');
+  drop.ondrop = e=>{e.preventDefault(); drop.classList.remove('over');
+    if(e.dataTransfer.files[0]) handleZip(e.dataTransfer.files[0]);};
+  inp.onchange = ()=>{ if(inp.files[0]) handleZip(inp.files[0]); };
+  $('#calcBtn').onclick = runUserAnalysis;
+}
+
+async function handleZip(file){
+  const msg=$('#zipMsg');
+  msg.className='msg'; msg.innerHTML=`<span class="spin"></span> ${file.name} 읽는 중…`;
+  $('#pickWrap').style.display='none';
+  try{
+    const groups = await readZip(file);
+    const keys = Object.keys(groups).filter(k=>groups[k].length>=2);
+    if(keys.length < 2){
+      msg.className='msg warn';
+      msg.innerHTML = `<b>구조 그룹이 부족합니다.</b> 야생형과 변이형 각각 2개 이상의 모델이 필요합니다.`
+        + `<br><span class="muted">인식된 그룹: ${Object.keys(groups).map(k=>`${k}(${groups[k].length})`).join(', ')||'없음'}</span>`;
+      return;
+    }
+    UPLOAD = {groups, keys};
+    const opts = keys.map(k=>`<option value="${k}">${k} — 모델 ${groups[k].length}개</option>`).join('');
+    $('#selWt').innerHTML = opts;
+    $('#selMut').innerHTML = opts;
+    // 이름으로 야생형/변이형 자동 추정
+    const wtGuess = keys.find(k=>/_wt|wild/i.test(k));
+    const mutGuess = keys.find(k=>k!==wtGuess);
+    if(wtGuess) $('#selWt').value = wtGuess;
+    if(mutGuess) $('#selMut').value = mutGuess;
+
+    msg.className='msg ok';
+    msg.innerHTML = `<b>${Object.values(groups).flat().length}개 구조를 읽었습니다.</b>`
+      + ` 그룹 ${keys.length}개 — ${keys.join(', ')}`;
+    $('#pickWrap').style.display='block';
+    $('#fs1').classList.add('done');
+  }catch(e){
+    msg.className='msg warn';
+    msg.innerHTML = `<b>읽지 못했습니다.</b> ${e.message}<br>
+      <span class="muted">ZIP 안에 .cif 파일이 있는지 확인해 주세요.</span>`;
+  }
+}
+
+function runUserAnalysis(){
+  const msg=$('#zipMsg');
+  const wtKey=$('#selWt').value, mutKey=$('#selMut').value;
+  if(wtKey===mutKey){
+    msg.className='msg warn';
+    msg.innerHTML='<b>같은 그룹을 선택했습니다.</b> 야생형과 변이형을 서로 다른 그룹으로 지정해 주세요.';
+    return;
+  }
+  const m=$('#mut').value.trim().toUpperCase().match(/^([A-Z])(\d+)([A-Z])$/);
+  if(!m){ msg.className='msg warn'; msg.innerHTML='<b>변이 표기를 먼저 입력해 주세요.</b> 국소 편차 측정에 위치가 필요합니다.'; return; }
+  const pos=+m[2];
+
+  msg.className='msg'; msg.innerHTML='<span class="spin"></span> 편차 계산 중…';
+  setTimeout(()=>{
+    const wtSet=UPLOAD.groups[wtKey].map(o=>o.struct);
+    const mutSet=UPLOAD.groups[mutKey].map(o=>o.struct);
+    const r=runDetectability(wtSet, mutSet, pos);
+    if(r.error){ msg.className='msg warn'; msg.innerHTML=`<b>${r.error}</b>`; return; }
+    if(!r.baseline.length){ msg.className='msg warn';
+      msg.innerHTML=`<b>${pos}번 잔기 주변에서 비교할 Cα 를 찾지 못했습니다.</b> 위치와 구간을 확인해 주세요.`; return; }
+
+    window._userResult = {...r, pos, label:`${m[1]}${pos}${m[3]}`,
+      acc:currentAcc||'—', wtKey, mutKey,
+      nWt:wtSet.length, nMut:mutSet.length};
+    msg.className='msg ok';
+    msg.innerHTML=`<b>계산 완료.</b> 구조 검증 화면에서 결과를 확인하세요.`;
+    $('#userTab').style.display='inline-block';
+    window._curGene='__USER__';
+    gotoScreen('s3');
+  }, 30);
+}
+
+/* 업로드 결과를 구조 검증 화면에 표시 */
+function renderUserResult(){
+  const u=window._userResult;
+  if(!u){ $('#sScore').innerHTML='<div class="msg">업로드된 결과가 없습니다.</div>'; return; }
+  const mn=median(u.baseline), ms=median(u.signal), d=ms-mn, det=u.detected;
+
+  $('#sTitle').innerHTML = `${u.acc} · ${u.label} <span class="muted mono">업로드 결과</span>`;
+  $('#sScore').innerHTML = `
+   <div class="score ${det?'sig':'ns'}">
+    <div class="top">
+      <div class="verdict">${det?'재현 변동성 초과':'재현 변동성 내'}</div>
+      <div class="vsub">${det
+        ? '변이로 인한 편차가 모델 재현 변동을 통계적으로 초과합니다'
+        : '변이로 인한 편차가 모델 재현 변동과 구분되지 않습니다'}</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="kl">p-value</div><div class="kv mono">${fmtP(u.p)}</div>
+        <div class="kn">Mann–Whitney U · 단측 · α = 0.05</div></div>
+      <div class="kpi"><div class="kl">편차 Δ</div>
+        <div class="kv mono">${d>=0?'+':''}${d.toFixed(3)} <span style="font-size:15px">Å</span></div>
+        <div class="kn">${det?`Cα–Cα 결합거리의 약 ${Math.round(Math.abs(d)/1.5*100)}%`:'기준 변동 범위 이내'}</div></div>
+    </div>
+    <div class="rows">
+      ${row('기준 반복 변동 (n='+u.baseline.length+')', mn.toFixed(3)+' Å')}
+      ${row('범위', Math.min(...u.baseline).toFixed(3)+' – '+Math.max(...u.baseline).toFixed(3), 1)}
+      ${row('변이 비교 편차 (n='+u.signal.length+')', ms.toFixed(3)+' Å')}
+      ${row('비율', (ms/mn).toFixed(2)+'×')}
+    </div>
+    <div class="foot">${det
+      ? '귀무가설을 기각합니다. 효과크기를 함께 확인하십시오.'
+      : '귀무가설을 기각하지 못했습니다. 구조 불변이 아니라 본 모델의 감별 한계를 의미합니다.'}</div>
+   </div>`;
+
+  $('#sCond').innerHTML = `
+    <tr><td>입력</td><td class="mono">사용자 업로드</td></tr>
+    <tr><td>야생형 그룹</td><td class="mono">${u.wtKey} · 모델 ${u.nWt}개</td></tr>
+    <tr><td>변이형 그룹</td><td class="mono">${u.mutKey} · 모델 ${u.nMut}개</td></tr>
+    <tr><td>정렬 구간</td><td class="mono">${u.nFit} 잔기 ${u.usedCore?'(pLDDT ≥ 70)':'(전체 — 고신뢰 잔기 부족)'}</td></tr>
+    <tr><td>컷오프</td><td class="mono">8 Å (${u.pos}번 기준)</td></tr>`;
+
+  drawStrip('#sPlot', [
+    {label:'기준 반복', vals:u.baseline, color:'#2a78d6'},
+    {label:'변이 비교', vals:u.signal,   color:'#eb6834'}], '국소 RMSD (Å)');
+
+  $('#sViewer').innerHTML = `<div class="vfallback">업로드된 결과에는 3D 미리보기를 제공하지 않습니다.<br>
+    <span class="muted">구조 파일은 원본 ZIP 에서 확인하십시오.</span></div>`;
+}
