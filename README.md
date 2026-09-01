@@ -4,6 +4,15 @@
 randomization method integrated with AlphaFold3 for 3D structure prediction.*
 **Cell Genomics 4, 100700.** [`10.1016/j.xgen.2024.100700`](https://doi.org/10.1016/j.xgen.2024.100700)
 
+
+### 이 저장소에서 확인할 수 있는 것
+
+| | 내용 | 위치 |
+|---|---|---|
+| **A. 논문 조사** | 선행 연구 한계·차별성 정리, 인용 문헌 10편 | [선행 연구의 한계](#a--선행-연구의-한계와-본-연구의-차별성-literature-review) · [재현 범위](#a--재현-범위--무엇을-실행했고-무엇을-인용했는가) |
+| **B. 연구** | 가설 설정 · 음성 대조군 · 통계 검정 | [가설과 검정](#b--가설과-검정-research--analysis) · [결과](#결과) |
+| **C. 구현** | Python 스크립트 10개 · 재현 절차 · 예측 구조 60개 | [재현 방법](#c--재현-방법-implementation) · [`src/`](src) · [`data/`](data) |
+
 ---
 
 ## 한 줄 요약
@@ -15,7 +24,7 @@ randomization method integrated with AlphaFold3 for 3D structure prediction.*
 
 ---
 
-## 가설과 검정
+## B · 가설과 검정  *(Research & Analysis)*
 
 | | 내용 |
 |---|---|
@@ -68,7 +77,7 @@ TREM2 Ig 도메인(19–130) + Aβ42(APP 672–713) 복합체, 시드 3 × 모�
 
 ---
 
-## 선행 연구의 한계와 본 연구의 차별성
+## A · 선행 연구의 한계와 본 연구의 차별성  *(Literature Review)*
 
 | | 선행 연구 | 본 연구 |
 |---|---|---|
@@ -82,7 +91,38 @@ TREM2 Ig 도메인(19–130) + Aβ42(APP 672–713) 복합체, 시드 3 × 모�
 
 ---
 
-## 재현 방법
+## A · 재현 범위 — 무엇을 실행했고 무엇을 인용했는가
+
+원논문 파이프라인은 **① MR-SPI 통계 → ② AlphaFold3 구조 예측** 두 단계다.
+본 저장소는 **②만 직접 실행**했고 ①은 논문 결과를 인용했다.
+
+| 단계 | 본 저장소 | 사유 |
+|---|---|---|
+| ① MR-SPI (인과 단백질 식별) | **미실행 · 논문 결과 인용** | 입력 자료가 통제접근 |
+| ② AlphaFold3 (구조 예측) | **직접 실행 + 검정 추가** | 웹서버 무료 공개 |
+| ③ Boltz-2 (결합 예측) | **직접 실행** — 본 저장소의 확장 | MIT 라이선스 |
+
+### ① 을 실행하지 않은 이유
+
+MR-SPI 자체는 **오픈소스로 공개되어 있어 코드 접근에는 제약이 없다.**
+실행을 막는 것은 코드가 아니라 **입력 데이터의 접근 조건**이다.
+
+| 필요 자원 | 공개 상태 | 제약 |
+|---|---|---|
+| **MR-SPI R 패키지** | 공개 — [GitHub `MinhaoYaooo/MR-SPI`](https://github.com/MinhaoYaooo/MR-SPI) · [Zenodo `10.5281/zenodo.14036275`](https://doi.org/10.5281/zenodo.14036275) | 없음 |
+| AD GWAS 요약통계 (Jansen 2019) | [공개 다운로드](https://ctg.cncr.nl/software/summary_statistics) | 대용량 |
+| **UKB-PPP pGWAS 요약통계** | [Synapse `syn51365301`](https://www.synapse.org/Synapse:syn51365301) | **통제접근(controlled access) — 별도 신청·승인 필요** |
+
+→ UKB-PPP는 신청·승인 절차가 필요한 통제접근 자원이고 규모도 크다.
+  발표 일정 내 확보가 불가능하여 **①은 논문 보고값을 입력으로 사용**했다.
+  즉 7개 인과 단백질 목록과 인과효과 방향은 **본 저장소의 결과가 아니라 주어진 전제**다.
+
+> **표기 원칙** — 본 저장소는 MR-SPI를 구현하거나 실행한 바 없다.
+> 위 링크는 원저자 공개 자원에 대한 **인용**이며, 재현을 원하는 사람을 위한 경로 안내다.
+
+---
+
+## C · 재현 방법  *(Implementation)*
 
 ### 환경
 
@@ -128,7 +168,7 @@ python3 src/analyze_boltz.py
 
 ---
 
-## 저장소 구조
+## C · 저장소 구조
 
 ```
 src/
