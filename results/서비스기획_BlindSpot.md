@@ -1,10 +1,11 @@
-# VarQ Studio
+# BlindSpot
 
 **구조 예측 모델의 변이 감별력 사전 검정 플랫폼**
 *Mutation Detectability Assessment Platform for Structure Prediction Models*
 
 **근거 데이터** Yao et al. (2024) *Cell Genomics* 4:100700 재현 실측
 **저장소** https://github.com/mimm-112/AD-AlphaFold3-Reproduction
+**데모**   https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/  ← 실제 동작
 
 ---
 
@@ -195,7 +196,7 @@ CD33 R69G는 원논문이 AD 위험 증가로 지목한 변이이나 본 지표�
 # 6. 사이트맵
 
 ```
-VarQ Studio
+BlindSpot
 ├── 6.1  HOME                 서비스 정의 · 검정 원리 · 사례 진입
 ├── 6.2  변이 입력 및 검증      accession + 변이 → 서열 생성
 ├── 6.3  구조 축 감별력 검정    재현 변동성 대비 편차 검정
@@ -368,17 +369,32 @@ TREM2 · R62H  +  Aβ42 (APP 672–713)
 
 ---
 
-# 9. 구현 범위 (포트폴리오 데모)
+# 9. 구현 현황
 
-| 구성 | 구현 | 비고 |
+**배포됨** — https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/
+
+| 구성 | 상태 | 근거 |
 |---|---|---|
-| 화면 6.1 · 6.3 · 6.4 · 6.5 | **정적 HTML + Mol\*** | 서버 불요, 즉시 로딩 |
-| 화면 6.2 검증 로직 | JS 이식 (`sequences.py` 규칙) | UniProt REST 직접 호출 |
-| 사례 데이터 | **사전 산출 4건** | 실측 구조 60개 |
-| 임의 accession 실시간 예측 | 미구현 | 예측 1건 10–30분, AF Server 일 30건 제한 |
+| **UniProt 조회 · 잔기 대조 검증** | ✅ **실동작 · 임의 accession** | REST API 직접 호출. dbSNP ID 자동 매칭 |
+| **변이 서열 생성 · 도메인 절단** | ✅ 실동작 | UniProt 도메인 주석 기반 경계 자동 제안 |
+| **입력 파일 배포** | ✅ 실동작 | FASTA · AF Server JSON · Boltz-2 YAML 다운로드 |
+| **감별력 검정 재계산** | ✅ 실동작 | 원자료 CSV → 브라우저에서 Mann–Whitney U (정규근사·연속성 보정) |
+| **분포 도표** | ✅ 실동작 | SVG 실시간 생성 |
+| **3D 구조 뷰어** | ✅ 실동작 | Mol\* 로 실측 mmCIF 로드. WebGL 미지원 시 사전 렌더 폴백 |
+| 구조 예측 실행 | ❌ 미구현 | GPU 필요. 예측 1건 10–30분, AF Server 일 30건 제한 |
 
-> 설계는 임의 입력을 전제하되 데모는 사전 산출 사례로 시연한다.
-> 실시간 예측은 연산 자원 및 API 할당량 제약이며 설계상 제약이 아니다.
+**설계는 임의 입력을 전제하며, 검증·서열 생성·파일 배포 단계는 실제로 임의 accession에 대해 동작한다.**
+예측 실행만 사전 산출 4건으로 대체했다. 이는 연산 자원 제약이며 설계상 제약이 아니다.
+
+### 검증 로직 실동작 예시
+
+`Q9UKJ1` + `G78R` 입력 시:
+
+> **진행 차단** — 정본 서열 78번은 **Arg(R)**이며 입력값 Gly(G)와 불일치.
+> 입력이 **역방향**일 가능성. 올바른 표기는 `R78G`
+
+역방향 오류 패턴을 감지하여 정정안을 제시한다.
+본 연구에서 실제로 이 오류를 사전 차단한 로직을 그대로 이식했다.
 
 ---
 

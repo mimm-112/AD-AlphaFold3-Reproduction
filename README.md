@@ -4,6 +4,8 @@
 randomization method integrated with AlphaFold3 for 3D structure prediction.*
 **Cell Genomics 4, 100700.** [`10.1016/j.xgen.2024.100700`](https://doi.org/10.1016/j.xgen.2024.100700)
 
+**▶ 데모** https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/ — 본 검정을 웹에서 실행
+
 
 ### 이 저장소에서 확인할 수 있는 것
 
@@ -12,6 +14,7 @@ randomization method integrated with AlphaFold3 for 3D structure prediction.*
 | **A. 논문 조사** | 선행 연구 한계·차별성 정리, 인용 문헌 10편 | [선행 연구의 한계](#a--선행-연구의-한계와-본-연구의-차별성-literature-review) · [재현 범위](#a--재현-범위--무엇을-실행했고-무엇을-인용했는가) |
 | **B. 연구** | 가설 설정 · 음성 대조군 · 통계 검정 | [가설과 검정](#b--가설과-검정-research--analysis) · [결과](#결과) |
 | **C. 구현** | Python 스크립트 10개 · 재현 절차 · 예측 구조 60개 | [재현 방법](#c--재현-방법-implementation) · [`src/`](src) · [`data/`](data) |
+| **C. 구현** | **웹 애플리케이션** — UniProt 실시간 검증 · 브라우저 통계 재계산 | [데모](https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/) · [`app/`](app) |
 
 ---
 
@@ -122,6 +125,28 @@ MR-SPI 자체는 **오픈소스로 공개되어 있어 코드 접근에는 제�
 
 ---
 
+## C · 웹 애플리케이션 — BlindSpot
+
+본 검정 절차를 브라우저에서 실행하는 정적 애플리케이션.
+**https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/**
+
+| 기능 | 상태 |
+|---|---|
+| UniProt 조회 및 잔기 대조 검증 | **실동작 · 임의 accession** |
+| 변이 서열 생성 · 도메인 자동 절단 | 실동작 |
+| 입력 파일 배포 (FASTA · AF Server JSON · Boltz YAML) | 실동작 |
+| 감별력 검정 재계산 (Mann–Whitney U) | 실동작 — 원자료 CSV에서 브라우저가 계산 |
+| 3D 구조 뷰어 (Mol\*) | 실동작 — WebGL 미지원 시 사전 렌더 폴백 |
+| 구조 예측 실행 | 미구현 (GPU 필요) |
+
+검증 로직은 `src/sequences.py` 의 `assert` 규칙을 이식한 것으로,
+`Q9UKJ1` + `G78R` 입력 시 역방향 오류를 감지하고 `R78G` 를 제시한다.
+
+서버가 필요 없으나 `file://` 로 열면 CORS 로 UniProt 조회가 차단된다.
+로컬 실행은 `cd app && python3 -m http.server 8899`.
+
+---
+
 ## C · 재현 방법  *(Implementation)*
 
 ### 환경
@@ -157,6 +182,9 @@ python3 src/make_slide_charts.py
 # 6. Boltz-2 확장 (Colab T4) — notebooks/02_boltz_trem2_ab42.ipynb
 python3 src/make_boltz_inputs.py
 python3 src/analyze_boltz.py
+
+# 7. 웹 애플리케이션 로컬 실행
+cd app && python3 -m http.server 8899   # → http://localhost:8899
 ```
 
 ### 재현성 장치
@@ -185,6 +213,11 @@ src/
 
 notebooks/
   02_boltz_trem2_ab42.ipynb   Colab T4용 Boltz-2 실행 노트북
+
+app/        BlindSpot 웹 애플리케이션 (정적 배포)
+  index.html              5화면 UI
+  app.js                  UniProt 검증 · Mann–Whitney U · Mol* 뷰어
+  data/                   원자료 CSV · 구조 파일 · 폴백 이미지
 
 inputs/     FASTA · AF Server JSON · Boltz YAML
 data/       예측 구조 60개 + 신뢰도 JSON (MSA·PAE는 재생성 가능하므로 제외)
