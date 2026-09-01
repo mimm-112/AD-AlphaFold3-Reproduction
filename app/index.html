@@ -3,214 +3,281 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BlindSpot — 변이 감별력 사전 검정</title>
+<title>BlindSpot — 구조 예측 유효성 검증</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@4.9.0/build/viewer/molstar.css">
 <style>
-:root{--navy:#1e3a5f;--blue:#1d4ed8;--ink:#0b0b0b;--ink2:#52514e;--muted:#8a8a86;
-  --line:#e6e5e1;--panel:#f7f8f9;--bad:#b02020;--good:#0b7a55}
+:root{
+  --navy:#1e3a5f; --navy-2:#2c5282; --blue:#1d4ed8;
+  --ink:#0f172a; --ink2:#475569; --muted:#94a3b8;
+  --line:#e2e8f0; --panel:#f8fafc; --panel2:#f1f5f9;
+  --slate:#5b6570; --amber:#b45309; --amber-bg:#fffbeb; --amber-line:#fcd34d;
+  --ok:#0f766e;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,'Apple SD Gothic Neo','Segoe UI',sans-serif;color:var(--ink);
-  font-size:14px;line-height:1.55;background:#fff}
+  font-size:14px;line-height:1.6;background:#fff}
 .mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
-header{border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;gap:13px}
+a{color:var(--blue)}
+
+header{border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:center;height:56px}
 .logo{font-size:19px;font-weight:700;color:var(--navy);letter-spacing:-.4px}
 .logo span{color:var(--blue)}
-.tagline{font-size:12px;color:var(--ink2);border-left:1px solid var(--line);padding-left:13px}
-header .repo{margin-left:auto;font-size:11px;color:var(--muted)}
-nav{display:flex;padding:0 26px;border-bottom:1px solid var(--line);gap:2px}
-nav a{padding:10px 15px;font-size:13px;color:var(--ink2);text-decoration:none;border-bottom:2px solid transparent;cursor:pointer}
+nav{display:flex;margin-left:34px;gap:2px;height:100%}
+nav a{padding:0 15px;font-size:13.5px;color:var(--ink2);text-decoration:none;cursor:pointer;
+  display:flex;align-items:center;border-bottom:2px solid transparent}
+nav a:hover{color:var(--ink)}
 nav a.on{color:var(--navy);font-weight:600;border-bottom-color:var(--navy)}
-main{padding:24px 26px 44px;max-width:1160px}
+header .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+header .right a{font-size:12px;color:var(--muted);text-decoration:none}
+header .right a:hover{color:var(--ink2)}
+
+main{padding:0 28px 56px;max-width:1180px;margin:0 auto}
 .screen{display:none}.screen.on{display:block}
-h2{font-size:17px;color:var(--navy)}h2 .num{color:var(--muted);font-weight:400;margin-right:7px}
-.sub{font-size:12.5px;color:var(--ink2);margin:4px 0 17px}
-.grid{display:grid;gap:15px}.g2{grid-template-columns:1.1fr .9fr}.g2b{grid-template-columns:1fr 1fr}
-.panel{border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.panel h3{font-size:12px;font-weight:600;color:var(--ink2);padding:9px 13px;
+
+.ph{padding:26px 0 18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.ph h2{font-size:19px;color:var(--navy);letter-spacing:-.3px}
+.ph .desc{font-size:12.5px;color:var(--ink2);width:100%;margin-top:3px}
+
+.grid{display:grid;gap:16px}.g2{grid-template-columns:1.08fr .92fr}.g2b{grid-template-columns:1fr 1fr}
+.panel{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.panel h3{font-size:12px;font-weight:600;color:var(--ink2);padding:10px 14px;
   border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:8px;align-items:center}
-.panel .body{padding:13px}
-.cal{width:17px;height:17px;border-radius:50%;background:var(--navy);color:#fff;font-size:10.5px;
-  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:600}
-.verdict{border:1.5px solid var(--line);border-radius:8px;overflow:hidden}
-.verdict .head{padding:11px 13px;font-weight:700;font-size:14px;color:#fff;background:var(--bad)}
-.verdict.pass .head{background:var(--good)}
-.verdict .head small{display:block;font-weight:400;font-size:11.5px;opacity:.92;margin-top:2px}
-.verdict .rows{padding:11px 13px}
-.row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px dotted var(--line)}
-.row.sub .k{padding-left:12px;color:var(--muted)}.row.sub .v{font-weight:400;color:var(--ink2)}
-.row:last-child{border:none}.row .k{color:var(--ink2)}.row .v{font-weight:600}
-.row .v.bad{color:var(--bad)}
-.note{padding:10px 13px;background:var(--panel);font-size:11.5px;color:var(--ink2);border-top:1px solid var(--line)}
+.panel .body{padding:15px}
+
+/* ── 랜딩 ── */
+.hero{padding:64px 0 44px;text-align:center;border-bottom:1px solid var(--line)}
+.hero .eyebrow{font-size:12px;color:var(--blue);font-weight:700;letter-spacing:1.2px;text-transform:uppercase}
+.hero h1{font-size:38px;letter-spacing:-1.2px;color:var(--navy);margin:12px 0 14px;line-height:1.25}
+.hero p{font-size:15.5px;color:var(--ink2);max-width:620px;margin:0 auto 26px}
+.cta{display:inline-flex;align-items:center;gap:9px;background:var(--navy);color:#fff;border:0;
+  border-radius:8px;padding:13px 26px;font-size:14.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.cta:hover{background:var(--navy-2)}
+.cta.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.cta.ghost:hover{background:var(--panel)}
+.herolinks{display:flex;gap:10px;justify-content:center}
+
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:38px 0 0;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.how .s{padding:20px 22px;border-right:1px solid var(--line)}
+.how .s:last-child{border-right:0}
+.how .n{width:22px;height:22px;border-radius:50%;background:var(--panel2);color:var(--navy);
+  font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+.how .t{font-size:14px;font-weight:600;margin-bottom:5px}
+.how .d{font-size:12.5px;color:var(--ink2)}
+
+.seclabel{font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;margin:44px 0 14px}
+.cases{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.case{border:1px solid var(--line);border-radius:9px;padding:15px;background:#fff;cursor:pointer;
+  text-align:left;font-family:inherit;color:var(--ink);transition:.12s}
+.case:hover{border-color:var(--navy);box-shadow:0 2px 10px rgba(30,58,95,.07)}
+.case .nm{font-weight:700;font-size:14px}
+.case .sc{font-size:11.5px;color:var(--muted);margin:3px 0 9px}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:5px;
+  font-size:11px;font-weight:600}
+.badge.sig{background:#eef2f7;color:var(--navy)}
+.badge.ns{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line)}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ── 스코어카드 ── */
+.score{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.score .top{padding:15px 17px;border-bottom:1px solid var(--line)}
+.score.sig .top{background:#eef2f7;border-bottom-color:#cdd8e4}
+.score.ns  .top{background:var(--amber-bg);border-bottom-color:var(--amber-line)}
+.score .verdict{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.score.sig .verdict{color:var(--navy)}.score.ns .verdict{color:var(--amber)}
+.score .vsub{font-size:12px;color:var(--ink2);margin-top:3px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.kpi{padding:15px 17px;border-right:1px solid var(--line)}
+.kpi:last-child{border-right:0}
+.kpi .kl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+.kpi .kv{font-size:27px;font-weight:700;letter-spacing:-1px;margin-top:3px;line-height:1.1}
+.kpi .kn{font-size:11.5px;color:var(--ink2);margin-top:2px}
+.rows{padding:11px 17px}
+.row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px dotted var(--line)}
+.row:last-child{border:0}.row .k{color:var(--ink2)}.row .v{font-weight:600}
+.row.sub .k{padding-left:13px;color:var(--muted);font-size:12px}
+.row.sub .v{font-weight:400;color:var(--ink2)}
+.foot{padding:11px 17px;background:var(--panel);font-size:11.5px;color:var(--ink2);border-top:1px solid var(--line)}
+
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+th,td{text-align:left;padding:8px 11px;border-bottom:1px solid var(--line)}
 th{color:var(--ink2);font-weight:600;font-size:11.5px;background:var(--panel)}
 td.n,th.n{text-align:right}
-.chip{display:inline-block;padding:2px 8px;border-radius:11px;font-size:11px;font-weight:600}
-.chip.fail{background:#fdecec;color:var(--bad)}.chip.pass{background:#e6f6f0;color:var(--good)}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:11.5px;color:var(--ink2);margin-bottom:4px;font-weight:600}
-.input{border:1px solid var(--line);border-radius:6px;padding:0 4px 0 11px;display:flex;
-  align-items:center;gap:8px;background:#fff}
-.input input{border:0;outline:0;padding:9px 0;font-size:13px;flex:1;font-family:'SF Mono',Menlo,monospace;background:transparent}
-.input.ok{border-color:#8fd6bb;background:#f7fdfa}.input.err{border-color:#e8a0a0;background:#fdf6f6}
+tr:last-child td{border-bottom:0}
+
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:600}
+.input{border:1px solid var(--line);border-radius:7px;padding:0 5px 0 12px;display:flex;
+  align-items:center;gap:9px;background:#fff;transition:.12s}
+.input:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px rgba(30,58,95,.07)}
+.input input{border:0;outline:0;padding:10px 0;font-size:13.5px;flex:1;
+  font-family:'SF Mono',Menlo,monospace;background:transparent}
+.input.ok{border-color:#5eead4;background:#f0fdfa}
+.input.warn{border-color:var(--amber-line);background:var(--amber-bg)}
 .input .meta{font-size:11.5px;color:var(--ink2);white-space:nowrap}
-button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 13px;
+button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 14px;
   font-size:12.5px;cursor:pointer;color:var(--navy);font-weight:600;font-family:inherit}
 button:hover{background:var(--panel)}
 button.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
-.banner{padding:9px 12px;border-radius:6px;font-size:12px;margin-top:6px;background:var(--panel);color:var(--ink2)}
-.banner.ok{background:#f2fbf7;border:1px solid #8fd6bb;color:var(--good)}
-.banner.err{background:#fdf3f3;border:1px solid #e8a0a0;color:var(--bad)}
-.banner code{background:#fff;padding:1px 5px;border-radius:3px;font-weight:700}
-.seqlbl{font-size:11.5px;color:var(--ink2);margin:10px 0 4px;font-weight:600}
+button.pri:hover{background:var(--navy-2)}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.msg{padding:10px 13px;border-radius:7px;font-size:12.5px;margin-top:7px;
+  background:var(--panel);color:var(--ink2);border:1px solid var(--line)}
+.msg.ok{background:#f0fdfa;border-color:#5eead4;color:var(--ok)}
+.msg.warn{background:var(--amber-bg);border-color:var(--amber-line);color:var(--amber)}
+.msg code{background:rgba(255,255,255,.8);padding:1px 6px;border-radius:4px;font-weight:700}
+
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line);
+  border-top-color:var(--navy);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.seqlbl{font-size:11.5px;color:var(--ink2);margin:11px 0 4px;font-weight:600;display:flex;gap:7px}
 .seq{font-family:'SF Mono',Menlo,monospace;font-size:11.5px;letter-spacing:.4px;word-break:break-all;
-  color:var(--ink2);line-height:1.85;background:var(--panel);padding:9px 11px;border-radius:6px}
-.seq .hl{background:#ffe89a;color:var(--ink);padding:1px 3px;border-radius:3px;font-weight:700}
-.seqrow{display:flex;gap:8px;align-items:center;font-size:12px;margin-top:9px}
-.tag{background:var(--navy);color:#fff;font-size:10.5px;padding:2px 7px;border-radius:4px}
-.viewer{height:330px;position:relative;background:#fbfbfa;border-top:1px solid var(--line)}
-.vnote{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.93);border-top:1px solid var(--line);padding:5px 10px;font-size:10.5px;color:var(--muted);text-align:center}
-.vfallback{padding:26px;font-size:12.5px;color:var(--ink2);text-align:center;line-height:1.9}
-.vlegend{position:absolute;right:10px;top:10px;z-index:5;background:rgba(255,255,255,.95);
-  border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:11px}
-.vlegend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
-.cite{font-size:11.5px;color:var(--ink2);padding:7px 0;border-bottom:1px solid var(--line)}
-.cite:last-child{border:none}.cite b{color:var(--ink)}
-.warn{border:1px solid #f0d089;background:#fffaf0;border-radius:7px;padding:11px 12px;
-  font-size:11.5px;color:#7a5a10;line-height:1.65}.warn b{color:#5c4208}
-.boundary{border:1px solid var(--line);border-left:3px solid var(--navy);background:var(--panel);
-  border-radius:0 7px 7px 0;padding:12px 14px;font-size:12px;color:var(--ink2);margin-top:15px}
-.boundary b{color:var(--navy)}
-.hero{border:1px solid var(--line);border-radius:9px;padding:22px 23px;background:var(--panel)}
-.hero h1{font-size:22px;color:var(--navy);letter-spacing:-.5px;margin-bottom:6px}
-.hero p{font-size:13px;color:var(--ink2);max-width:730px}
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
-.step{background:#fff;border:1px solid var(--line);border-radius:7px;padding:11px 12px}
-.step .t{font-size:11px;color:var(--blue);font-weight:700;margin-bottom:3px}
-.step .d{font-size:11.5px;color:var(--ink2)}
-.cases{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.case{border:1px solid var(--line);border-radius:7px;padding:12px;background:#fff;cursor:pointer;text-align:left;font-weight:400;color:var(--ink)}
-.case:hover{border-color:var(--navy)}
-.case .nm{font-weight:700;font-size:13px;margin-bottom:4px}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.casebtn{font-weight:600}
+  color:var(--ink2);line-height:1.85;background:var(--panel);padding:10px 12px;border-radius:7px}
+.seq .hl{background:#fde68a;color:var(--ink);padding:1px 4px;border-radius:3px;font-weight:700}
+.chipline{display:flex;gap:8px;align-items:center;font-size:12px;margin-top:10px}
+.tag{background:var(--panel2);color:var(--navy);font-size:11px;padding:3px 8px;border-radius:5px;font-weight:600}
+
+.viewer{height:340px;position:relative;background:#fcfcfd;border-top:1px solid var(--line)}
+.viewer img{width:100%;height:100%;object-fit:contain}
+.vnote{position:absolute;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);
+  border-top:1px solid var(--line);padding:6px 11px;font-size:10.5px;color:var(--muted);text-align:center}
+.vfallback{padding:30px;font-size:12.5px;color:var(--ink2);text-align:center;line-height:1.9}
+.vlegend{position:absolute;right:11px;top:11px;z-index:5;background:rgba(255,255,255,.96);
+  border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:11px}
+.vlegend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+
+.cite{font-size:12px;color:var(--ink2);padding:9px 0;border-bottom:1px solid var(--line)}
+.cite:last-child{border:0}.cite b{color:var(--ink)}
+.disclaimer{margin-top:24px;padding-top:14px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--muted);line-height:1.75}
+.disclaimer b{color:var(--ink2);font-weight:600}
+.tabs{display:flex;gap:7px;margin-bottom:16px}
 .casebtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-.live{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--good);
-  background:#e6f6f0;padding:2px 8px;border-radius:11px;font-weight:600}
-.live::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--good)}
-footer{padding:15px 26px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.info{display:inline-flex;width:14px;height:14px;border-radius:50%;background:var(--panel2);
+  color:var(--ink2);font-size:9.5px;align-items:center;justify-content:center;cursor:help;
+  font-weight:700;vertical-align:1px;margin-left:4px}
+footer{border-top:1px solid var(--line);padding:20px 28px;font-size:11.5px;color:var(--muted);
+  max-width:1180px;margin:0 auto}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">Blind<span>Spot</span></div>
-  <div class="tagline">구조 예측 모델의 변이 감별력 사전 검정</div>
-  <div class="repo mono">github.com/mimm-112/AD-AlphaFold3-Reproduction</div>
+  <nav>
+    <a class="on" data-s="s1">홈</a>
+    <a data-s="s2">분석</a>
+    <a data-s="s3">구조 검증</a>
+    <a data-s="s4">결합 인터페이스 검증</a>
+    <a data-s="s5">리포트</a>
+    <a data-s="s6">방법론</a>
+  </nav>
+  <div class="right">
+    <a href="https://github.com/mimm-112/AD-AlphaFold3-Reproduction" target="_blank">GitHub</a>
+  </div>
 </header>
-
-<nav>
-  <a class="on" data-s="s1">HOME</a>
-  <a data-s="s2">변이 입력 및 검증</a>
-  <a data-s="s3">구조 축 감별력 검정</a>
-  <a data-s="s4">결합 축 감별력 검정</a>
-  <a data-s="s5">통합 리포트</a>
-</nav>
 
 <main>
 
-<!-- ══ HOME ══ -->
+<!-- ══ 홈 ══ -->
 <section class="screen on" id="s1">
   <div class="hero">
-    <h1>이 변이에 대해 구조 예측을 증거로 쓸 수 있는가</h1>
-    <p>동일 조건 반복 예측으로 <b>모델 재현 변동성</b>을 음성 대조군으로 확보하고,
-       야생형–변이형 간 구조적 편차가 이를 초과하는지 비모수 검정으로 판정한다.</p>
-    <div class="steps">
-      <div class="step"><div class="t">① 음성 대조군</div><div class="d">동일 서열 n회 반복 예측 → 변이 미포함 편차 = 재현 변동성</div></div>
-      <div class="step"><div class="t">② 처리군</div><div class="d">야생형 × 변이형 구조 쌍 → 변이 + 재현 변동성</div></div>
-      <div class="step"><div class="t">③ 검정</div><div class="d">Mann–Whitney U · α = 0.05 → 검출 / 미검출</div></div>
+    <div class="eyebrow">Mutation Detectability Assessment</div>
+    <h1>구조 예측 유효성 검증</h1>
+    <p>같은 서열을 반복 예측해 모델의 재현 변동성을 먼저 측정하고,
+       변이로 인한 구조 편차가 이를 초과하는지 판정합니다.</p>
+    <div class="herolinks">
+      <button class="cta" data-goto="s2">분석 시작하기 →</button>
+      <button class="cta ghost" data-goto="s6">방법론 보기</button>
     </div>
   </div>
 
-  <div class="grid g2" style="margin-top:15px">
-    <div class="panel"><h3><span class="cal">1</span>핵심 논거 — 기존 신뢰도 지표는 변이 감별력을 보장하지 않는다</h3>
-      <div class="body"><table>
-        <tr><th>사례</th><th>모델 보고 신뢰도</th><th>변이 감별</th></tr>
-        <tr><td><b>CD33 R69G</b></td><td class="mono">도메인 pLDDT 97.3 · pTM 0.60</td><td><span class="chip fail">미검출 p=0.54</span></td></tr>
-        <tr><td><b>TREM2 R62H + Aβ42</b></td><td class="mono">ipTM 0.851 · complex pLDDT 0.856</td><td><span class="chip fail">미검출 p=0.30</span></td></tr>
-      </table>
-      <p style="font-size:11.5px;color:var(--ink2);margin-top:9px">고신뢰 조건에서도 변이 효과가 검출되지 않는다.
-        pLDDT 97은 해당 위치 구조에 대한 확신을 의미할 뿐, 변이 반영을 의미하지 않는다.</p></div></div>
-
-    <div class="panel"><h3><span class="cal">2</span>근거 문헌</h3><div class="body">
-      <div class="cite"><b>Buel &amp; Walters (2022)</b> <i>Nat Struct Mol Biol</i><br>AlphaFold2는 구조 붕괴 변이 DB로 학습되지 않아 야생형·상동 서열 기반 예측</div>
-      <div class="cite"><b>Bret et al. (2026)</b> <i>J Chem Inf Model</i><br>Boltz-2 affinity의 결합부위 변이 둔감성</div>
-      <div class="cite"><b>Yao et al. (2024)</b> <i>Cell Genomics</i> 4:100700<br>재현 대상 — MR-SPI × AlphaFold3</div></div></div>
+  <div class="how">
+    <div class="s"><div class="n">1</div><div class="t">기준 반복 측정</div>
+      <div class="d">동일 서열을 n회 예측해 모델 자체의 변동 폭을 구한다</div></div>
+    <div class="s"><div class="n">2</div><div class="t">변이 비교</div>
+      <div class="d">야생형과 변이형 구조 쌍의 편차를 측정한다</div></div>
+    <div class="s"><div class="n">3</div><div class="t">유의성 판정</div>
+      <div class="d">두 분포를 비모수 검정으로 비교해 결과를 제시한다</div></div>
   </div>
 
-  <div class="panel" style="margin-top:15px"><h3><span class="cal">3</span>사례 데이터 — 클릭하여 검증 화면으로</h3>
-    <div class="body"><div class="cases">
-      <button class="case" data-preset="PILRA"><div class="nm">PILRA R78G</div><div class="mono muted" style="font-size:11.5px">10.0× · p 6×10⁻⁹</div><span class="chip pass" style="margin-top:5px">검출</span></button>
-      <button class="case" data-preset="TREM2"><div class="nm">TREM2 R62H</div><div class="mono muted" style="font-size:11.5px">1.5× · p 5.4×10⁻³</div><span class="chip pass" style="margin-top:5px">검출</span></button>
-      <button class="case" data-preset="CD33"><div class="nm">CD33 R69G</div><div class="mono muted" style="font-size:11.5px">0.97× · p 0.54</div><span class="chip fail" style="margin-top:5px">미검출</span></button>
-      <div class="case" style="cursor:default"><div class="nm">TREM2 + Aβ42</div><div class="mono muted" style="font-size:11.5px">결합 축 · p 0.30</div><span class="chip fail" style="margin-top:5px">미검출</span></div>
-    </div>
-    <p style="font-size:11.5px;color:var(--ink2);margin-top:10px"><b>CD33 R69G는 원논문 본문 Figure 4B의 대표 사례다.</b>
-      가장 널리 인용될 도해가 미검출 판정을 받는 점이 본 서비스의 필요성을 직접 예시한다.</p></div></div>
+  <div class="seclabel">수록 사례</div>
+  <div class="cases">
+    <button class="case" data-preset="PILRA"><div class="nm">PILRA R78G</div>
+      <div class="sc mono">구조 · p 6×10⁻⁹</div><span class="badge sig">재현 변동성 초과</span></button>
+    <button class="case" data-preset="TREM2"><div class="nm">TREM2 R62H</div>
+      <div class="sc mono">구조 · p 5.4×10⁻³</div><span class="badge sig">재현 변동성 초과</span></button>
+    <button class="case" data-preset="CD33"><div class="nm">CD33 R69G</div>
+      <div class="sc mono">구조 · p 0.54</div><span class="badge ns">재현 변동성 내</span></button>
+    <button class="case" data-goto="s4"><div class="nm">TREM2 + Aβ42</div>
+      <div class="sc mono">인터페이스 · p 0.30</div><span class="badge ns">재현 변동성 내</span></button>
+  </div>
 
-  <div class="boundary"><span class="cal">4</span> <b>서비스 경계</b> — 본 서비스는 변이의 생물학적 효과를 규명하지 않는다.
-    병원성·기능 변화·손상 부위·druggability를 판정하지 않으며, <b>예측값의 증거 사용 적합성만 판정</b>한다.
-    발견 도구가 아니라 선별(triage) 도구다.</div>
+  <div class="disclaimer">
+    <b>해석 시 유의사항</b> — 본 서비스는 예측값의 사용 적합성을 판정하며,
+    변이의 병원성·기능 변화 등 생물학적 해석은 제공하지 않습니다.
+    <b>재현 변동성 내</b>라는 판정은 구조가 불변함을 의미하지 않으며, 해당 모델로 판단할 수 없음을 의미합니다.
+    <a data-goto="s6" style="cursor:pointer">방법론 및 한계 →</a>
+  </div>
 </section>
 
-<!-- ══ 입력 및 검증 ══ -->
+<!-- ══ 분석 ══ -->
 <section class="screen" id="s2">
-  <h2><span class="num">2</span>변이 입력 및 검증 <span class="live">실시간 동작</span></h2>
-  <div class="sub">UniProt REST를 직접 조회하여 잔기를 대조한다. <b>임의 accession 입력 가능.</b></div>
+  <div class="ph"><h2>분석</h2>
+    <div class="desc">UniProt accession 과 변이 표기를 입력하면 서열을 조회해 대조하고, 예측 입력 파일을 생성합니다.</div></div>
 
   <div class="grid g2">
     <div class="panel"><h3>입력</h3><div class="body">
-      <div class="field"><label><span class="cal">1</span> UniProt accession</label>
+      <div class="field"><label>UniProt Accession</label>
         <div class="input" id="accBox">
           <input id="acc" value="Q9NZC2" placeholder="예: Q9NZC2" spellcheck="false">
           <span class="meta" id="accMeta"></span>
           <button class="pri" id="lookup">조회</button></div>
-        <div class="banner" id="accInfo">조회 버튼을 누르면 UniProt에서 서열·도메인 주석을 가져온다.</div></div>
+        <div class="msg" id="accInfo">조회하면 서열과 도메인 주석을 가져옵니다.</div></div>
 
-      <div class="field"><label><span class="cal">2</span> 변이 표기 <span class="muted" style="font-weight:400">— 전구체(precursor) 번호 기준</span></label>
+      <div class="field"><label>변이 표기
+          <span class="muted" style="font-weight:400">— 전구체 번호 기준, [야생형][위치][변이형]</span></label>
         <div class="input" id="mutBox"><input id="mut" value="R62H" placeholder="예: R62H" spellcheck="false"></div>
-        <div class="banner" id="mutResult">형식: [야생형][위치][변이형]</div></div>
+        <div class="msg" id="mutResult">accession 조회 후 자동 검증됩니다.</div></div>
 
-      <div class="field"><label><span class="cal">3</span> 예측 구간</label>
-        <div class="input" style="padding:9px 11px">
+      <div class="field"><label>예측 구간</label>
+        <div class="input" style="padding:10px 12px">
           <input type="checkbox" id="useDom" checked style="flex:0 0 auto;width:auto">
-          <span style="font-size:13px">변이가 포함된 도메인만 절단</span></div></div>
+          <span style="font-size:13.5px">변이가 포함된 도메인만 사용</span></div></div>
 
-      <div class="field"><label><span class="cal">4</span> 앙상블 파라미터</label>
-        <div class="input" style="padding:9px 11px;gap:16px">
-          <span style="font-size:13px">샘플 수 n</span><input id="nsamp" type="number" value="5" min="2" max="20" style="width:52px">
-          <span style="font-size:13px">시드</span><input id="seed" type="number" value="1" style="width:52px"></div></div>
+      <div class="field"><label>앙상블 설정
+          <span class="info" title="같은 서열을 n회 반복 예측해 기준 변동 폭을 만듭니다">?</span></label>
+        <div class="input" style="padding:10px 12px;gap:18px">
+          <span style="font-size:13.5px">샘플 수</span>
+          <input id="nsamp" type="number" value="5" min="2" max="20" style="width:56px">
+          <span style="font-size:13.5px">시드</span>
+          <input id="seed" type="number" value="1" style="width:56px"></div></div>
     </div></div>
 
-    <div class="panel"><h3><span class="cal">5</span>생성된 서열</h3><div class="body">
-      <div id="genBox"><p class="muted" style="font-size:12.5px">accession 조회와 변이 검증이 완료되면 표시된다.</p></div>
-      <div id="dl" style="display:none;gap:7px;margin-top:14px">
+    <div class="panel"><h3>생성된 서열</h3><div class="body">
+      <div id="genBox"><p class="muted" style="font-size:12.5px;padding:8px 0">
+        조회와 검증이 완료되면 표시됩니다.</p></div>
+      <div id="dl" style="display:none;gap:8px;margin-top:15px;flex-wrap:wrap">
         <button id="dlFasta">FASTA</button>
         <button id="dlAf">AlphaFold Server JSON</button>
         <button id="dlBoltz">Boltz-2 YAML</button></div>
-      <div class="warn" style="margin-top:13px"><b>차단 사례</b> — PILRA에 <code>G78R</code> 입력 시
-        정본 서열(Q9UKJ1) 78번이 이미 Arg이므로 진행이 차단되고 <code>R78G</code>가 제시된다.
-        직접 입력해 확인할 수 있다.</div>
+      <div id="runWrap" style="display:none;margin-top:18px;padding-top:15px;border-top:1px solid var(--line)">
+        <button class="cta" id="runBtn" style="width:100%;justify-content:center">구조 검증 실행 →</button>
+        <p class="muted" style="font-size:11.5px;margin-top:8px;text-align:center">
+          수록 사례는 사전 산출된 결과를 표시합니다</p></div>
     </div></div>
   </div>
 </section>
 
-<!-- ══ 구조 축 ══ -->
+<!-- ══ 구조 검증 ══ -->
 <section class="screen" id="s3">
-  <h2><span class="num">3</span>구조 축 감별력 검정 <span class="live">실시간 계산</span></h2>
-  <div class="sub">국소 RMSD (Cα, 변이 잔기 8 Å 이내) · 도메인 Cα 정렬 후 재정렬 없이 측정 ·
-    통계량은 원자료 CSV에서 브라우저가 직접 계산한다 (정규근사·연속성 보정)</div>
+  <div class="ph"><h2>구조 검증</h2>
+    <div class="desc">변이 잔기 8 Å 이내 Cα 국소 RMSD · 도메인 정렬 후 재정렬 없이 측정</div></div>
 
   <div class="tabs">
     <button class="casebtn on" data-g="CD33">CD33 R69G</button>
@@ -219,89 +286,155 @@ footer{padding:15px 26px;border-top:1px solid var(--line);font-size:11px;color:v
   </div>
 
   <div class="grid g2">
-    <div class="panel"><h3><span class="cal">1</span>3D 오버레이 <span id="sTitle" style="margin-left:auto;font-weight:400"></span></h3>
+    <div id="sScore"></div>
+    <div class="panel"><h3>구조 오버레이 <span id="sTitle" style="margin-left:auto;font-weight:400"></span></h3>
       <div class="viewer" id="sViewer">
-        <div class="vlegend"><div><i style="background:#2a4fd8"></i>야생형</div><div><i style="background:#e03a3a"></i>변이형</div></div>
-      </div></div>
-    <div>
-      <div class="verdict" id="sVerdict"></div>
-      <div class="panel" style="margin-top:13px"><h3><span class="cal">2</span>측정 조건</h3>
-        <div class="body" style="padding:0"><table id="sCond"></table></div></div>
-    </div>
+        <div class="vlegend"><div><i style="background:#2a4fd8"></i>야생형</div>
+          <div><i style="background:#e03a3a"></i>변이형</div></div></div></div>
   </div>
 
-  <div class="panel" style="margin-top:15px"><h3><span class="cal">3</span>음성 대조군 / 처리군 편차 분포</h3>
-    <div class="body" id="sPlot"></div></div>
+  <div class="grid g2b" style="margin-top:16px">
+    <div class="panel"><h3>기준 반복 / 변이 비교 분포</h3><div class="body" id="sPlot"></div></div>
+    <div class="panel"><h3>측정 조건</h3><div class="body" style="padding:0"><table id="sCond"></table></div></div>
+  </div>
+
+  <div class="disclaimer">
+    <b>해석 시 유의사항</b> — 판정은 예측값의 사용 적합성에 관한 것입니다.
+    재현 변동성 내라는 결과는 구조가 불변함을 의미하지 않으며 해당 모델의 감별 한계를 의미합니다.
+  </div>
 </section>
 
-<!-- ══ 결합 축 ══ -->
+<!-- ══ 결합 인터페이스 ══ -->
 <section class="screen" id="s4">
-  <h2><span class="num">4</span>결합 축 감별력 검정 <span class="live">실시간 계산</span></h2>
-  <div class="sub">TREM2 Ig 도메인 19–130 + Aβ42 (APP 672–713) · Boltz-2 복합체 · 구조 축과 동일 프로토콜</div>
+  <div class="ph"><h2>결합 인터페이스 검증</h2>
+    <div class="desc">TREM2 Ig 도메인 19–130 + Aβ42 (APP 672–713) 복합체 · Boltz-2 · 구조 검증과 동일 절차</div></div>
 
   <div class="grid g2">
-    <div class="panel"><h3><span class="cal">1</span>복합체 3D — TREM2 + Aβ42</h3>
+    <div id="bScore"></div>
+    <div class="panel"><h3>복합체 구조</h3>
       <div class="viewer" id="bViewer">
-        <div class="vlegend"><div><i style="background:#2a4fd8"></i>WT 복합체</div><div><i style="background:#e03a3a"></i>R62H 복합체</div></div>
-      </div></div>
-    <div>
-      <div class="verdict" id="bVerdict"></div>
-      <div class="warn" style="margin-top:13px"><span class="cal">2</span> <b>지표 정의</b><br>
-        ipTM은 결합 자유에너지가 아닌 <b>인터페이스 예측 신뢰도 지표</b>다.
-        Boltz-2 affinity head는 <b>small-molecule 전용</b>이며 펩타이드에 미적용이므로
-        결합 친화도 수치는 산출되지 않는다.</div>
-      <div class="panel" style="margin-top:13px"><h3><span class="cal">3</span>관련 실험 문헌</h3><div class="body">
-        <div class="cite"><b>Zhao et al. (2018)</b> <i>Neuron</i> — TREM2가 Aβ 올리고머에 나노몰 친화도 결합, AD 변이가 결합 감소</div>
-        <div class="cite"><b>Zhong et al. (2018)</b> <i>Mol Neurodegener</i> — 결합 필수 잔기 31–91 (R62 포함)</div>
-        <div class="cite"><b>UniProt Q9NZC2</b> — R62H: "does not affect protein structure"</div>
-      </div></div>
-    </div>
+        <div class="vlegend"><div><i style="background:#2a4fd8"></i>야생형 복합체</div>
+          <div><i style="background:#e03a3a"></i>변이형 복합체</div></div></div></div>
   </div>
 
-  <div class="panel" style="margin-top:15px"><h3><span class="cal">4</span>ipTM 분포</h3>
-    <div class="body" id="bPlot"></div></div>
+  <div class="grid g2b" style="margin-top:16px">
+    <div class="panel"><h3>ipTM 분포</h3><div class="body" id="bPlot"></div></div>
+    <div class="panel"><h3>관련 실험 문헌</h3><div class="body">
+      <div class="cite"><b>Zhao et al. (2018)</b> <i>Neuron</i> — TREM2가 Aβ 올리고머에 나노몰 친화도로 결합하며 AD 변이가 결합을 감소시킴</div>
+      <div class="cite"><b>Zhong et al. (2018)</b> <i>Mol Neurodegener</i> — 결합에 필수적인 잔기 구간 31–91 (R62 포함)</div>
+      <div class="cite"><b>UniProt Q9NZC2</b> — R62H: "does not affect protein structure"</div>
+    </div></div>
+  </div>
 
-  <div class="boundary"><span class="cal">5</span> <b>해석 비제공</b> — 결합 변화 여부에 대한 판단은 제공하지 않는다.
-    미검출은 결합 불변을 의미하지 않으며, 본 모델로 판단할 수 없음을 의미한다.</div>
+  <div class="disclaimer">
+    <b>지표 정의</b> — ipTM 은 결합 자유에너지가 아닌 인터페이스 예측 신뢰도 지표입니다.
+    Boltz-2 affinity head 는 small-molecule 전용이므로 펩타이드에는 적용되지 않으며, 결합 친화도 수치는 산출되지 않습니다.
+    결합 변화 여부에 대한 판단은 제공하지 않습니다.
+  </div>
 </section>
 
-<!-- ══ 통합 리포트 ══ -->
+<!-- ══ 리포트 ══ -->
 <section class="screen" id="s5">
-  <h2><span class="num">5</span>통합 리포트</h2>
-  <div class="sub">전 사례 판정 요약 · 모든 통계량은 원자료에서 재계산된 값</div>
+  <div class="ph"><h2>리포트</h2>
+    <div class="desc">전 사례 판정 요약 · 모든 통계량은 원자료에서 재계산된 값입니다</div></div>
 
-  <div class="panel"><h3><span class="cal">1</span>판정 요약</h3><div class="body" style="padding:0">
-    <table><thead><tr><th>사례</th><th>축</th><th class="n">재현 변동성</th><th class="n">편차</th>
+  <div class="panel"><h3>판정 요약</h3><div class="body" style="padding:0">
+    <table><thead><tr><th>사례</th><th>검증</th><th class="n">기준 변동</th><th class="n">측정 편차</th>
       <th class="n">비</th><th class="n">p</th><th>판정</th></tr></thead>
       <tbody id="rTable"></tbody></table></div></div>
 
-  <div class="grid g2b" style="margin-top:15px">
-    <div class="panel"><h3><span class="cal">2</span>문헌 대조 — TREM2 R62H</h3><div class="body" style="padding:0">
+  <div class="grid g2b" style="margin-top:16px">
+    <div class="panel"><h3>문헌 대조 — TREM2 R62H</h3><div class="body" style="padding:0">
       <table><tr><th>출처</th><th>보고 내용</th><th>본 모델</th></tr>
-        <tr><td class="mono">Zhao 2018</td><td>AD 변이가 Aβ 결합 감소</td><td><span class="chip fail">미검출</span></td></tr>
-        <tr><td class="mono">UniProt</td><td>구조에 영향 없음</td><td><span class="chip pass">부합</span></td></tr></table>
-      <p style="font-size:11.5px;color:var(--ink2);padding:11px 13px">문헌은 결합 효과를 보고하나 본 모델은 미검출.
-        <b>계산이 아닌 실험적 접근이 요구되는 사례로 분류된다.</b></p></div></div>
+        <tr><td class="mono">Zhao 2018</td><td>AD 변이가 Aβ 결합 감소</td>
+          <td><span class="badge ns">변동성 내</span></td></tr>
+        <tr><td class="mono">UniProt</td><td>구조에 영향 없음</td>
+          <td><span class="badge sig">부합</span></td></tr></table>
+      <p style="font-size:12px;color:var(--ink2);padding:12px 14px">문헌은 결합 효과를 보고하나 본 모델은 감별하지 못했습니다.
+        계산이 아닌 실험적 접근이 요구되는 사례로 분류됩니다.</p></div></div>
 
-    <div class="panel"><h3><span class="cal">3</span>재현 정보</h3><div class="body" style="padding:0"><table>
-      <tr><td>구조 축 모델</td><td class="mono">AlphaFold Server (AF3)</td></tr>
-      <tr><td>결합 축 모델</td><td class="mono">Boltz-2 2.2.1</td></tr>
-      <tr><td>시드</td><td class="mono">구조 seed 1 · 결합 seed 1–3</td></tr>
-      <tr><td>샘플 수</td><td class="mono">구조 5 / 조건 · 결합 5 / 시드</td></tr>
+    <div class="panel"><h3>재현 정보</h3><div class="body" style="padding:0"><table>
+      <tr><td>구조 검증 모델</td><td class="mono">AlphaFold Server (AF3)</td></tr>
+      <tr><td>인터페이스 검증 모델</td><td class="mono">Boltz-2 2.2.1</td></tr>
+      <tr><td>시드</td><td class="mono">구조 1 · 인터페이스 1–3</td></tr>
+      <tr><td>샘플 수</td><td class="mono">조건당 5</td></tr>
       <tr><td>검정</td><td class="mono">Mann–Whitney U · α = 0.05</td></tr>
       <tr><td>원자료</td><td class="mono">rmsd_pairs.csv · boltz_iptm.csv</td></tr>
     </table></div></div>
   </div>
 
-  <div class="boundary"><span class="cal">4</span> <b>서비스 경계 재고지</b> — 산출되는 정렬은
-    <b>증거 사용 가능성 순위이며 생물학적 중요도 순위가 아니다.</b>
-    CD33 R69G는 원논문이 AD 위험 증가로 지목한 변이이나 본 지표에서 최하위다.</div>
+  <div class="disclaimer">
+    <b>해석 시 유의사항</b> — 산출되는 정렬은 증거 사용 가능성 순위이며 생물학적 중요도 순위가 아닙니다.
+    CD33 R69G 는 원논문이 AD 위험 증가로 지목한 변이이나 본 지표에서는 최하위입니다.
+  </div>
+</section>
+
+<!-- ══ 방법론 ══ -->
+<section class="screen" id="s6">
+  <div class="ph"><h2>방법론</h2>
+    <div class="desc">검정 설계 · 존재 근거 · 서비스 범위</div></div>
+
+  <div class="panel"><h3>검정 설계</h3><div class="body" style="padding:0">
+    <table>
+      <tr><th style="width:22%">항목</th><th>내용</th></tr>
+      <tr><td>귀무가설 H₀</td><td>야생형–변이형 간 구조적 편차 = 동일 조건 반복 예측의 변동</td></tr>
+      <tr><td>대립가설 H₁</td><td>변이형의 구조적 편차가 재현 변동성을 초과한다</td></tr>
+      <tr><td><b>음성 대조군</b></td><td><b>동일 서열의 모델 쌍</b> — 변이가 없으므로 관측 편차는 전부 모델 변동이다</td></tr>
+      <tr><td>처리군</td><td>야생형 × 변이형 구조 쌍</td></tr>
+      <tr><td>검정</td><td>Mann–Whitney U · 구조 단측 / 인터페이스 양측 · α = 0.05</td></tr>
+      <tr><td>통제 변수</td><td>동일 도구 · 동일 서열 구간 · 시드 고정 · 동일 샘플 수</td></tr>
+      <tr><td>지표</td><td>구조 — 국소 RMSD (Cα, 8 Å) / 인터페이스 — ipTM</td></tr>
+    </table></div></div>
+
+  <div class="panel" style="margin-top:16px"><h3>존재 근거 — 기존 신뢰도 지표는 변이 감별력을 보장하지 않는다</h3>
+    <div class="body" style="padding:0">
+      <table><tr><th>사례</th><th>모델 보고 신뢰도</th><th>변이 감별</th></tr>
+        <tr><td><b>CD33 R69G</b></td><td class="mono">도메인 pLDDT 97.3 · pTM 0.60</td>
+          <td><span class="badge ns">변동성 내 p=0.54</span></td></tr>
+        <tr><td><b>TREM2 R62H + Aβ42</b></td><td class="mono">ipTM 0.851 · complex pLDDT 0.856</td>
+          <td><span class="badge ns">변동성 내 p=0.30</span></td></tr></table>
+      <p style="font-size:12.5px;color:var(--ink2);padding:13px 14px">
+        고신뢰 조건에서도 변이 효과가 검출되지 않습니다. pLDDT 97 은 해당 위치 구조에 대한 확신을 의미할 뿐
+        변이 반영을 의미하지 않으며, 현행 도구 중 변이 감별력을 별도로 보고하는 것은 없습니다.</p></div></div>
+
+  <div class="grid g2b" style="margin-top:16px">
+    <div class="panel"><h3>근거 문헌</h3><div class="body">
+      <div class="cite"><b>Buel &amp; Walters (2022)</b> <i>Nat Struct Mol Biol</i><br>
+        AlphaFold2 는 구조 붕괴 변이 DB 로 학습되지 않아 야생형·상동 서열 기반으로 예측한다</div>
+      <div class="cite"><b>Bret et al. (2026)</b> <i>J Chem Inf Model</i><br>
+        Boltz-2 affinity 의 결합부위 변이 둔감성 보고</div>
+      <div class="cite"><b>Yao et al. (2024)</b> <i>Cell Genomics</i> 4:100700<br>
+        재현 대상 — MR-SPI × AlphaFold3</div>
+    </div></div>
+
+    <div class="panel"><h3>서비스 범위</h3><div class="body" style="padding:0">
+      <table><tr><th>질문</th><th class="n">제공</th></tr>
+        <tr><td>이 예측을 구조적 변화의 근거로 쓸 수 있는가</td><td class="n"><b>제공</b></td></tr>
+        <tr><td>모델이 이 변이를 감별할 수 있는가</td><td class="n"><b>제공</b></td></tr>
+        <tr><td>이 변이가 병원성인가</td><td class="n muted">미제공</td></tr>
+        <tr><td>변이가 무엇을 손상시키는가</td><td class="n muted">미제공</td></tr>
+        <tr><td>약물 결합 부위가 변화했는가</td><td class="n muted">미제공</td></tr>
+        <tr><td>실제로 구조가 불변인가</td><td class="n muted">미제공</td></tr>
+      </table></div></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px"><h3>한계</h3><div class="body">
+    <p style="font-size:12.5px;color:var(--ink2)">
+      · 예측 대 예측 비교이며 실험적 검증은 포함하지 않습니다<br>
+      · <b>재현 변동성 내</b> 판정은 세 경우를 구분하지 못합니다 —
+        (a) 접힘이 실제로 변화하지 않음 (b) 변화하나 모델이 포착하지 못함
+        (c) 효과가 접힘이 아닌 다른 층위<br>
+      · ipTM 은 결합 자유에너지가 아닌 인터페이스 예측 신뢰도 지표입니다<br>
+      · 구조 예측 실행은 미구현이며 수록 사례는 사전 산출 결과입니다 (GPU 필요)
+    </p></div></div>
 </section>
 
 </main>
 
-<footer>BlindSpot · 근거 데이터: Yao et al. (2024) Cell Genomics 4:100700 재현 실측 ·
-  AlphaFold Server는 비영리 한정 / Boltz-2는 MIT</footer>
+<footer>
+  BlindSpot · 근거 데이터: Yao et al. (2024) <i>Cell Genomics</i> 4:100700 재현 실측 ·
+  AlphaFold Server 는 비영리 한정 / Boltz-2 는 MIT
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/molstar@4.9.0/build/viewer/molstar.js"></script>
 <script src="app.js"></script>

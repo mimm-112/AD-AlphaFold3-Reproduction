@@ -100,7 +100,8 @@ async function doLookup(){
   const acc = $('#acc').value.trim().toUpperCase();
   const box = $('#accBox'), info = $('#accInfo');
   if(!acc) return;
-  box.className='input'; info.innerHTML='<span class="muted">조회 중…</span>';
+  box.className='input'; info.className='msg'; info.innerHTML='<span class="spin"></span> <span class="muted">조회 중…</span>';
+  $('#lookup').disabled=true;
   try{
     const p = await fetchUniProt(acc);
     currentSeq = p.seq; currentAcc = p.acc;
@@ -113,15 +114,16 @@ async function doLookup(){
     if(sig) parts.push(`신호펩타이드 ${sig.location.start.value}–${sig.location.end.value}`);
     dom.slice(0,2).forEach(d=>parts.push(`${d.description} ${d.location.start.value}–${d.location.end.value}`));
     if(tm) parts.push(`TM ${tm.location.start.value}–${tm.location.end.value}`);
-    info.className='banner ok';
+    info.className='msg ok';
     info.innerHTML = `<b>${p.name||p.id}</b><br>${parts.join(' · ')||'주석 없음'}`;
     window._feats = p.feats;
+    $('#lookup').disabled=false;
     validateMut();
   }catch(e){
-    box.className='input err';
-    info.className='banner err';
-    info.textContent = `${acc} — ${e.message}. accession 형식을 확인할 것 (예: Q9NZC2)`;
-    currentSeq=null;
+    box.className='input warn';
+    info.className='msg warn';
+    info.textContent = `${acc} 를 찾지 못했습니다 (${e.message}). accession 형식을 확인해 주세요 — 예: Q9NZC2`;
+    currentSeq=null; $('#lookup').disabled=false;
   }
 }
 
@@ -129,34 +131,36 @@ function validateMut(){
   const raw = $('#mut').value.trim().toUpperCase();
   const box = $('#mutBox'), out = $('#mutResult'), gen = $('#genBox');
   gen.innerHTML=''; $('#dl').style.display='none';
+  const rw=$('#runWrap'); if(rw) rw.style.display='none';
   const m = raw.match(/^([A-Z])(\d+)([A-Z])$/);
-  if(!m){ box.className='input'; out.className='banner';
-    out.textContent='형식: [야생형][위치][변이형] — 예: R62H'; return; }
-  if(!currentSeq){ out.className='banner'; out.textContent='accession 을 먼저 조회할 것'; return; }
+  if(!m){ box.className='input'; out.className='msg';
+    out.textContent='형식에 맞게 입력해 주세요 — 예: R62H'; return; }
+  if(!currentSeq){ out.className='msg'; out.textContent='accession 을 먼저 조회해 주세요'; return; }
 
   const [,wt,posS,mut] = m, pos=+posS;
   if(pos<1 || pos>currentSeq.length){
-    box.className='input err'; out.className='banner err';
-    out.innerHTML=`위치 ${pos}가 서열 범위(1–${currentSeq.length})를 벗어남`; return;
+    box.className='input warn'; out.className='msg warn';
+    out.innerHTML=`위치 ${pos}가 서열 범위(1–${currentSeq.length})를 벗어납니다`; return;
   }
   const actual = currentSeq[pos-1];
 
   if(actual !== wt){
-    box.className='input err'; out.className='banner err';
+    box.className='input warn'; out.className='msg warn';
     // 역방향인지 확인 — 흔한 오류 패턴
     const reversed = actual===mut;
-    out.innerHTML = `<b>진행 차단</b> — 정본 서열 ${pos}번은 <b>${AA[actual]||actual}(${actual})</b>이며 입력값 ${AA[wt]||wt}(${wt})와 불일치.`
-      + (reversed ? `<br>입력이 <b>역방향</b>일 가능성. 올바른 표기는 <code>${actual}${pos}${wt}</code>` : '')
-      + `<br><span class="muted">전구체(precursor) 번호 기준인지 확인할 것.</span>`;
+    out.innerHTML = `<b>서열 불일치</b> — 입력하신 변이의 기준 잔기(${AA[wt]||wt})가 `
+      + `야생형 서열 ${pos}번 잔기(<b>${AA[actual]||actual}</b>)와 다릅니다.`
+      + (reversed ? `<br>표기 방향이 반대일 수 있습니다. <code>${actual}${pos}${wt}</code> 인지 확인해 주세요.` : '')
+      + `<br><span class="muted">전구체(precursor) 번호 기준으로 입력했는지 확인해 주세요.</span>`;
     return;
   }
 
-  box.className='input ok'; out.className='banner ok';
+  box.className='input ok'; out.className='msg ok';
   const rs = (window._feats||[]).find(f=>f.type==='Natural variant'
       && f.location.start.value===pos
       && (f.alternativeSequence?.alternativeSequences||[]).includes(mut));
   const rsid = rs?.featureCrossReferences?.[0]?.id;
-  out.innerHTML = `<b>일치</b> — 정본 서열 ${pos}번 = ${AA[wt]}(${wt}). 진행 가능`
+  out.innerHTML = `<b>확인됨</b> — 야생형 서열 ${pos}번이 ${AA[wt]}(${wt})로 일치합니다`
     + (rsid ? ` · dbSNP <b>${rsid}</b>` : '');
 
   buildSequences(pos, wt, mut);
@@ -187,6 +191,7 @@ function buildSequences(pos, wt, mut){
     <div class="seqrow"><span class="tag">상이 잔기</span> <span class="mono">1개 (위치 ${pos})</span></div>`;
 
   $('#dl').style.display='flex';
+  $('#runWrap').style.display='block';
   window._out = {acc:currentAcc, label, a, b, sW, sM, n:+$('#nsamp').value, seed:+$('#seed').value};
 }
 
@@ -228,24 +233,36 @@ async function renderStructureAxis(gene){
   const sig   = rows.filter(r=>r.comparison==='signal_WT_vs_MUT').map(r=>+r.rmsd_local8A);
   const {p} = mannWhitneyU(sig, noise, 'greater');
   const det = p<0.05;
-  const mn=median(noise), ms=median(sig);
+  const mn=median(noise), ms=median(sig), d=ms-mn;
 
   $('#sTitle').innerHTML = `${gene} · ${c.wt}${c.pos}${c.mut} <span class="muted mono">${c.rsid}</span>`;
-  $('#sVerdict').className = 'verdict '+(det?'pass':'fail');
-  $('#sVerdict').innerHTML = `
-    <div class="head">${det?'변이 효과 검출':'변이 효과 미검출'}
-      <small>${det?'귀무가설 기각':'모델 감별력 미달 — 본 예측으로 판단 불가'}</small></div>
-    <div class="rows">
-      ${row('동일 조건 반복 예측 편차 (n='+noise.length+')', mn.toFixed(3)+' Å')}
-      ${row('범위', Math.min(...noise).toFixed(3)+' – '+Math.max(...noise).toFixed(3), 1)}
-      ${row('야생형–변이형 간 편차 (n='+sig.length+')', ms.toFixed(3)+' Å')}
-      ${row('Δ', (ms-mn>=0?'+':'')+(ms-mn).toFixed(3)+' Å', 0, det?'':'bad')}
-      ${row('Mann–Whitney U, 단측 · α=0.05', 'p = '+fmtP(p))}
+
+  $('#sScore').innerHTML = `
+   <div class="score ${det?'sig':'ns'}">
+    <div class="top">
+      <div class="verdict">${det?'재현 변동성 초과':'재현 변동성 내'}</div>
+      <div class="vsub">${det
+        ? '변이로 인한 편차가 모델 재현 변동을 통계적으로 초과합니다'
+        : '변이로 인한 편차가 모델 재현 변동과 구분되지 않습니다'}</div>
     </div>
-    <div class="note">${det
-      ? `귀무가설 기각. 단, Δ ${(ms-mn).toFixed(3)} Å은 Cα–Cα 결합거리(≈1.5 Å)의 약 ${Math.round((ms-mn)/1.5*100)}% 수준.`
-      : '귀무가설 기각 실패. 변이에 기인한 구조 편차가 모델 재현 변동성과 통계적으로 구분되지 않음.'}
-      <br><b>※ 구조 불변을 의미하지 않으며 본 모델의 감별 한계를 의미함.</b></div>`;
+    <div class="kpis">
+      <div class="kpi"><div class="kl">p-value</div>
+        <div class="kv mono">${fmtP(p)}</div>
+        <div class="kn">Mann–Whitney U · 단측 · α = 0.05</div></div>
+      <div class="kpi"><div class="kl">편차 Δ</div>
+        <div class="kv mono">${d>=0?'+':''}${d.toFixed(3)} <span style="font-size:15px">Å</span></div>
+        <div class="kn">${det?`Cα–Cα 결합거리의 약 ${Math.round(Math.abs(d)/1.5*100)}%`:'기준 변동 범위 이내'}</div></div>
+    </div>
+    <div class="rows">
+      ${row('기준 반복 변동 (n='+noise.length+')', mn.toFixed(3)+' Å')}
+      ${row('범위', Math.min(...noise).toFixed(3)+' – '+Math.max(...noise).toFixed(3), 1)}
+      ${row('변이 비교 편차 (n='+sig.length+')', ms.toFixed(3)+' Å')}
+      ${row('비율', (ms/mn).toFixed(2)+'×')}
+    </div>
+    <div class="foot">${det
+      ? '귀무가설을 기각합니다. 다만 효과크기를 함께 확인하십시오.'
+      : '귀무가설을 기각하지 못했습니다. 구조 불변이 아니라 본 모델의 감별 한계를 의미합니다.'}</div>
+   </div>`;
 
   $('#sCond').innerHTML = `
     <tr><td>모델</td><td class="mono">AlphaFold Server (AF3)</td></tr>
@@ -255,8 +272,8 @@ async function renderStructureAxis(gene){
     <tr><td>컷오프</td><td class="mono">8 Å (변이 잔기 기준)</td></tr>`;
 
   drawStrip('#sPlot', [
-    {label:'음성 대조군', vals:noise, color:'#2a78d6'},
-    {label:'처리군',      vals:sig,   color:'#eb6834'}],
+    {label:'기준 반복', vals:noise, color:'#2a78d6'},
+    {label:'변이 비교', vals:sig,   color:'#eb6834'}],
     '국소 RMSD (Å)');
 
   loadViewer([`data/structures/${c.wtCif}.cif`, `data/structures/${c.mutCif}.cif`],
@@ -270,27 +287,37 @@ async function renderBindingAxis(){
   const mut = IPTM.filter(r=>r.allele==='R62H').map(r=>+r.iptm);
   const {p} = mannWhitneyU(mut, wt, 'two-sided');
   const det = p<0.05;
-  const mw=median(wt), mm=median(mut), spread=Math.max(...wt)-Math.min(...wt);
+  const mw=median(wt), mm=median(mut), spread=Math.max(...wt)-Math.min(...wt), d=mm-mw;
 
-  $('#bVerdict').className='verdict '+(det?'pass':'fail');
-  $('#bVerdict').innerHTML = `
-    <div class="head">${det?'결합 변화 검출':'결합 감별력 미달'}
-      <small>${det?'귀무가설 기각':'변이 효과가 모델 재현 변동성에 포섭됨'}</small></div>
-    <div class="rows">
-      ${row('ipTM 야생형 (n='+wt.length+')', mw.toFixed(3))}
-      ${row('범위', Math.min(...wt).toFixed(3)+' – '+Math.max(...wt).toFixed(3),1)}
-      ${row('ipTM 변이형 (n='+mut.length+')', mm.toFixed(3))}
-      ${row('범위', Math.min(...mut).toFixed(3)+' – '+Math.max(...mut).toFixed(3),1)}
-      ${row('Δ', (mm-mw).toFixed(3), 0, 'bad')}
-      ${row('동일 조건 내 분산 폭', spread.toFixed(3))}
-      ${row('Mann–Whitney U, 양측', 'p = '+fmtP(p))}
+  $('#bScore').innerHTML = `
+   <div class="score ${det?'sig':'ns'}">
+    <div class="top">
+      <div class="verdict">${det?'재현 변동성 초과':'재현 변동성 내'}</div>
+      <div class="vsub">${det
+        ? '변이로 인한 ipTM 차이가 재현 변동을 초과합니다'
+        : '변이로 인한 ipTM 차이가 모델 재현 변동에 포섭됩니다'}</div>
     </div>
-    <div class="note">분산 폭 ${spread.toFixed(3)} ≫ 처리군 간 차이 ${Math.abs(mm-mw).toFixed(3)}.
-      Bret et al. (2026) 보고 결합부위 변이 둔감성과 부합.</div>`;
+    <div class="kpis">
+      <div class="kpi"><div class="kl">p-value</div>
+        <div class="kv mono">${fmtP(p)}</div>
+        <div class="kn">Mann–Whitney U · 양측 · α = 0.05</div></div>
+      <div class="kpi"><div class="kl">ipTM 차이 Δ</div>
+        <div class="kv mono">${d>=0?'+':''}${d.toFixed(3)}</div>
+        <div class="kn">기준 분산 폭 ${spread.toFixed(3)}</div></div>
+    </div>
+    <div class="rows">
+      ${row('야생형 ipTM (n='+wt.length+')', mw.toFixed(3))}
+      ${row('범위', Math.min(...wt).toFixed(3)+' – '+Math.max(...wt).toFixed(3),1)}
+      ${row('변이형 ipTM (n='+mut.length+')', mm.toFixed(3))}
+      ${row('범위', Math.min(...mut).toFixed(3)+' – '+Math.max(...mut).toFixed(3),1)}
+    </div>
+    <div class="foot">기준 분산 폭 ${spread.toFixed(3)} 이 처리군 간 차이 ${Math.abs(d).toFixed(3)} 를 크게 상회합니다.
+      Bret et al. (2026) 이 보고한 결합부위 변이 둔감성과 부합합니다.</div>
+   </div>`;
 
   drawStrip('#bPlot', [
-    {label:'TREM2 WT + Aβ42',   vals:wt,  color:'#2a78d6'},
-    {label:'TREM2 R62H + Aβ42', vals:mut, color:'#eb6834'}],
+    {label:'야생형 + Aβ42',   vals:wt,  color:'#2a78d6'},
+    {label:'R62H + Aβ42', vals:mut, color:'#eb6834'}],
     'ipTM');
 
   loadViewer(['data/structures/trem2_ab42_wt.cif','data/structures/trem2_ab42_r62h.cif'],
@@ -399,16 +426,16 @@ async function renderReport(){
       <td class="n mono">${ms.toFixed(3)} Å</td>
       <td class="n mono">${(ms/mn).toFixed(2)}×</td>
       <td class="n mono">${fmtP(p)}</td>
-      <td><span class="chip ${det?'pass':'fail'}">${det?'검출':'미검출'}</span></td></tr>`;
+      <td><span class="badge ${det?'sig':'ns'}">${det?'변동성 초과':'변동성 내'}</span></td></tr>`;
   }
   const wt=IPTM.filter(r=>r.allele==='WT').map(r=>+r.iptm);
   const mut=IPTM.filter(r=>r.allele==='R62H').map(r=>+r.iptm);
   const {p:pb}=mannWhitneyU(mut,wt,'two-sided');
   html+=`<tr><td><b>TREM2</b> <span class="mono muted">R62H + Aβ42</span></td>
-    <td class="mono">결합</td><td class="n mono">${(Math.max(...wt)-Math.min(...wt)).toFixed(3)}</td>
+    <td class="mono">인터페이스</td><td class="n mono">${(Math.max(...wt)-Math.min(...wt)).toFixed(3)}</td>
     <td class="n mono">${Math.abs(median(mut)-median(wt)).toFixed(3)}</td>
     <td class="n mono">—</td><td class="n mono">${fmtP(pb)}</td>
-    <td><span class="chip ${pb<0.05?'pass':'fail'}">${pb<0.05?'검출':'미검출'}</span></td></tr>`;
+    <td><span class="badge ${pb<0.05?'sig':'ns'}">${pb<0.05?'변동성 초과':'변동성 내'}</span></td></tr>`;
   $('#rTable').innerHTML=html;
 }
 
@@ -430,6 +457,12 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $('#mut').addEventListener('input', validateMut);
   $('#useDom').addEventListener('change', validateMut);
   $('#dlFasta').onclick=dlFasta; $('#dlAf').onclick=dlAf; $('#dlBoltz').onclick=dlBoltz;
+  $$('[data-goto]').forEach(b=>b.onclick=()=>gotoScreen(b.dataset.goto));
+  const rb=$('#runBtn'); if(rb) rb.onclick=()=>{
+    const g=Object.keys(CASES).find(k=>CASES[k].acc===currentAcc);
+    if(g) window._curGene=g;
+    gotoScreen('s3');
+  };
   $$('.casebtn').forEach(b=>b.onclick=()=>{
     $$('.casebtn').forEach(x=>x.classList.remove('on')); b.classList.add('on');
     renderStructureAxis(b.dataset.g);
