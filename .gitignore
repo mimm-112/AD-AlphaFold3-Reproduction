@@ -24,5 +24,7 @@ inputs/seqs/_uniprot/
 CLAUDE_GPX4_old.md.bak
 CLAUDE.md
 발표*/
+app/shots/
+
 results/발표*.md
 results/slide12_revised.md
