@@ -127,6 +127,8 @@ MR-SPI 자체는 **오픈소스로 공개되어 있어 코드 접근에는 제�
 
 ## C · 웹 애플리케이션 — BlindSpot
 
+**AlphaFold3 · Boltz-2 기반 미스센스 변이 구조 예측 감별력 검정 플랫폼**
+
 본 검정 절차를 브라우저에서 실행하는 정적 애플리케이션.
 **https://mimm-112.github.io/AD-AlphaFold3-Reproduction/app/**
 

@@ -25,6 +25,7 @@ CLAUDE_GPX4_old.md.bak
 CLAUDE.md
 발표*/
 app/shots/
+app/slides/shots/
 
 results/발표*.md
 results/slide12_revised.md

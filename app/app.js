@@ -641,3 +641,47 @@ function renderUserResult(){
   $('#sViewer').innerHTML = `<div class="vfallback">업로드된 결과에는 3D 미리보기를 제공하지 않습니다.<br>
     <span class="muted">구조 파일은 원본 ZIP 에서 확인하십시오.</span></div>`;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   문서 모드 (?doc=1) — 슬라이드·기획서용 번호 콜아웃
+   실제 사용 화면에는 표시되지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+const DOC_CALLOUTS = {
+  s1: [['.hero .eyebrow',1],['.hero h1',2],['.hero p',3],['.herolinks',4],
+       ['.how',5],['.seclabel',6],['.disclaimer',7]],
+  s2: [['#accBox',1],['#accInfo',2],['#mutBox',3],['#mutResult',4],
+       ['#genBox',5],['#dl',6],['.flow',7]],
+  s3: [['.tabs',1],['#sScore .top',2],['#sScore .kpis',3],['#sScore .rows',4],
+       ['#sViewer',5],['#sPlot',6],['#sCond',7]],
+  s4: [['#bScore .top',1],['#bScore .kpis',2],['#bViewer',3],
+       ['#bPlot',4],['.disclaimer',5]],
+  s5: [['#rTable',1],['.g2b .panel',2],['.disclaimer',3]],
+  s6: [['.panel',1],['.g2b',2],['.disclaimer',3]],
+};
+
+function applyDocMode(screenId){
+  const list = DOC_CALLOUTS[screenId]; if(!list) return;
+  const st = document.createElement('style');
+  st.textContent = `.docmark{position:absolute;z-index:60;width:26px;height:26px;border-radius:50%;
+    background:#1e3a5f;color:#fff;font:700 13px/26px -apple-system,sans-serif;text-align:center;
+    box-shadow:0 2px 7px rgba(0,0,0,.28);margin:-13px 0 0 -13px}`;
+  document.head.appendChild(st);
+  const seen = new Set();
+  list.forEach(([sel,n])=>{
+    const els=[...document.querySelectorAll(`#${screenId} ${sel}`)].filter(e=>!seen.has(e));
+    const el=els[0]; if(!el) return; seen.add(el);
+    const r=el.getBoundingClientRect();
+    const b=document.createElement('div');
+    b.className='docmark'; b.textContent=n;
+    b.style.left=(r.left+window.scrollX+9)+'px';
+    b.style.top=(r.top+window.scrollY+9)+'px';
+    document.body.appendChild(b);
+  });
+}
+
+if(new URLSearchParams(location.search).get('doc')==='1'){
+  window.addEventListener('load',()=>setTimeout(()=>{
+    const cur=[...document.querySelectorAll('.screen')].find(s=>s.classList.contains('on'));
+    if(cur) applyDocMode(cur.id);
+  }, 1200));
+}

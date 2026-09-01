@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>BlindSpot 서비스 슬라이드</title>
+<style>
+:root{--navy:#1e3a5f;--blue:#1d4ed8;--ink:#0f172a;--ink2:#475569;--muted:#94a3b8;
+  --line:#e2e8f0;--panel:#f8fafc;--amber:#b45309;--amber-bg:#fffbeb;--amber-line:#fcd34d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Apple SD Gothic Neo','Segoe UI',sans-serif;background:#8a9099}
+.slide{width:1600px;height:900px;background:#fff;margin:0 auto 28px;position:relative;
+  display:flex;flex-direction:column;overflow:hidden}
+.mono{font-family:'SF Mono',Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+.sh{padding:26px 44px 16px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px}
+.sh .no{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+.sh h2{font-size:25px;color:var(--navy);letter-spacing:-.6px}
+.sh .sub{margin-left:auto;font-size:12.5px;color:var(--ink2)}
+
+.sb{flex:1;display:flex;gap:26px;padding:22px 44px 26px;min-height:0}
+.shotwrap{flex:1.28;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  background:var(--panel);display:flex;align-items:flex-start;justify-content:center}
+.shotwrap img{width:100%;display:block}
+.side{flex:1;display:flex;flex-direction:column;min-width:0}
+.side h3{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:11px}
+ol.sum{list-style:none;counter-reset:c}
+ol.sum li{position:relative;padding:0 0 11px 32px;font-size:13.5px;color:var(--ink);line-height:1.6}
+ol.sum li::before{counter-increment:c;content:counter(c);position:absolute;left:0;top:1px;
+  width:21px;height:21px;border-radius:50%;background:var(--navy);color:#fff;
+  font-size:11.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+ol.sum li b{color:var(--navy)}
+ol.sum li .d{display:block;font-size:12px;color:var(--ink2);margin-top:2px}
+.note{margin-top:auto;padding:12px 14px;background:var(--panel);border-left:3px solid var(--navy);
+  border-radius:0 7px 7px 0;font-size:12px;color:var(--ink2);line-height:1.65}
+.note b{color:var(--navy)}
+.warn{margin-top:12px;padding:12px 14px;background:var(--amber-bg);border:1px solid var(--amber-line);
+  border-radius:7px;font-size:12px;color:var(--amber);line-height:1.65}
+.warn b{color:#7a3d05}
+
+/* 타이틀 슬라이드 */
+.title{justify-content:center;align-items:center;text-align:center;padding:0 120px}
+.title .eyebrow{font-size:14px;color:var(--blue);font-weight:700;letter-spacing:2px}
+.title h1{font-size:46px;color:var(--navy);letter-spacing:-1.6px;line-height:1.3;margin:20px 0 22px}
+.title p{font-size:17px;color:var(--ink2);line-height:1.85;max-width:1080px}
+.title .meta{margin-top:34px;font-size:13px;color:var(--muted)}
+.title .meta b{color:var(--ink2)}
+
+/* 표 */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--panel);color:var(--ink2);font-weight:600;font-size:11.5px}
+td.n,th.n{text-align:right}
+.flowbox{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:4px}
+.fx{border:1px solid var(--line);border-radius:8px;padding:12px 11px;background:#fff}
+.fx .fn{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:7px}
+.fx .ft{font-size:12.5px;font-weight:700;margin-bottom:4px;line-height:1.35}
+.fx .fd{font-size:11px;color:var(--ink2);line-height:1.5}
+.fx .fk{font-size:10.5px;color:var(--blue);margin-top:6px;font-family:'SF Mono',Menlo,monospace}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.badge.sig{background:#eef2f7;color:var(--navy)}
+.badge.ns{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line)}
+.sf{position:absolute;bottom:14px;right:44px;font-size:10.5px;color:var(--muted)}
+</style></head><body>
+
+<!-- ═══ S1 · 타이틀 ═══ -->
+<section class="slide title">
+  <div class="eyebrow">AI STRUCTURAL BIOLOGY &amp; PREDICTION RELIABILITY</div>
+  <h1>AlphaFold3 · Boltz-2 기반<br>미스센스 변이 구조 예측 감별력 검정 플랫폼</h1>
+  <p>동일 서열을 반복 예측해 모델 고유의 <b>재현 변동성</b>을 음성 대조군으로 확보하고,
+     야생형–변이형 간 구조 및 결합 인터페이스 편차가 이를 초과하는지 비모수 검정으로 판정하여,
+     해당 예측을 근거로 사용할 수 있는지 사전에 선별하는 시스템</p>
+  <div class="meta">
+    <b>BlindSpot</b> · 근거 데이터 Yao et al. (2024) <i>Cell Genomics</i> 4:100700 재현 실측<br>
+    mimm-112.github.io/AD-AlphaFold3-Reproduction/app/
+  </div>
+</section>
+
+<!-- ═══ S2 · 존재 근거 ═══ -->
+<section class="slide">
+  <div class="sh"><span class="no">01</span><h2>서비스 존재 근거</h2>
+    <span class="sub">기존 신뢰도 지표는 변이 감별력을 보장하지 않는다</span></div>
+  <div class="sb" style="flex-direction:column;gap:18px">
+    <div class="two">
+      <div>
+        <h3 style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px">문제</h3>
+        <p style="font-size:13.5px;line-height:1.75;color:var(--ink)">
+          구조 예측 모델은 야생형과 변이형에 대해 각각 구조를 산출하지만,
+          확률적 생성 모델의 특성상 <b>동일 서열에 대해서도 비결정적 출력</b>을 낸다.<br>
+          따라서 관측된 구조 편차가 <b>변이에 기인한 것인지 모델 재현 변동성인지 구분되지 않는다.</b></p>
+        <div class="warn" style="margin-top:14px"><b>실측 근거</b> — 동료심사를 거쳐 게재된 논문이
+          본문 Figure 4B 에 CD33 R69G 의 구조 변화를 대표 사례로 제시했으나,
+          동일 조건 재현 결과 <b>p = 0.54</b> 로 귀무가설 기각에 실패했다.</div>
+      </div>
+      <div>
+        <h3 style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px">
+          고신뢰 조건에서도 변이가 검출되지 않는다</h3>
+        <table>
+          <tr><th>사례</th><th>모델 보고 신뢰도</th><th>변이 감별</th></tr>
+          <tr><td><b>CD33 R69G</b></td><td class="mono">도메인 pLDDT 97.3<br>pTM 0.60</td>
+              <td><span class="badge ns">변동성 내 · p 0.54</span></td></tr>
+          <tr><td><b>TREM2 R62H<br>+ Aβ42</b></td><td class="mono">ipTM 0.851<br>complex pLDDT 0.856</td>
+              <td><span class="badge ns">변동성 내 · p 0.30</span></td></tr>
+        </table>
+        <p style="font-size:12px;color:var(--ink2);margin-top:11px;line-height:1.7">
+          pLDDT 97 은 해당 위치 구조에 대한 확신을 의미할 뿐 <b>변이 반영을 의미하지 않는다.</b>
+          그럼에도 현행 도구(AlphaFold Server · Boltz-2 · AlphaMissense · FoldX) 중
+          변이 감별력을 별도로 보고하는 것은 없다.</p>
+      </div>
+    </div>
+    <div class="note"><b>선행 연구</b> —
+      Buel &amp; Walters (2022) <i>Nat Struct Mol Biol</i>: AlphaFold2 는 구조 붕괴 변이 DB 로 학습되지 않아 야생형·상동 서열 기반으로 예측한다 ·
+      Bret et al. (2026) <i>J Chem Inf Model</i>: Boltz-2 affinity 의 결합부위 변이 둔감성.
+      <b>두 문헌 모두 한계를 지적했을 뿐 정량 기준은 제시하지 않았다.</b></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<!-- ═══ S3 · 파이프라인 · 정의표 ═══ -->
+<section class="slide">
+  <div class="sh"><span class="no">02</span><h2>서비스 파이프라인</h2>
+    <span class="sub">GPU 가 필요한 ② 만 외부, 나머지는 브라우저에서 완결</span></div>
+  <div class="sb" style="flex-direction:column;gap:16px">
+    <div class="flowbox">
+      <div class="fx"><div class="fn">1</div><div class="ft">서열 확보<br>변이 검증</div>
+        <div class="fd">UniProt 조회 후 잔기 대조. 불일치 시 진행 차단</div>
+        <div class="fk">UniProt REST</div></div>
+      <div class="fx"><div class="fn">2</div><div class="ft">구조 앙상블<br>생성</div>
+        <div class="fd">동일 서열 n회 반복 예측 (사용자 수행)</div>
+        <div class="fk">AlphaFold Server<br>Boltz-2</div></div>
+      <div class="fx"><div class="fn">3</div><div class="ft">음성 대조군<br>구성</div>
+        <div class="fd">변이 미포함 쌍 → 재현 변동성</div>
+        <div class="fk">Horn 중첩</div></div>
+      <div class="fx"><div class="fn">4</div><div class="ft">감별력<br>검정</div>
+        <div class="fd">대조군·처리군 분포 비교</div>
+        <div class="fk">Mann–Whitney U</div></div>
+      <div class="fx"><div class="fn">5</div><div class="ft">결합 인터페이스<br>확장</div>
+        <div class="fd">복합체 예측에 동일 절차 적용</div>
+        <div class="fk">Boltz-2 · ipTM</div></div>
+      <div class="fx"><div class="fn">6</div><div class="ft">판정<br>리포트</div>
+        <div class="fd">증거 사용 적합성 판정</div>
+        <div class="fk">Mol* · SVG</div></div>
+    </div>
+
+    <div class="two" style="flex:1;min-height:0">
+      <div>
+        <h3 style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px">검정 설계</h3>
+        <table>
+          <tr><th style="width:26%">항목</th><th>내용</th></tr>
+          <tr><td>귀무가설 H₀</td><td>야생형–변이형 편차 = 동일 조건 반복 예측의 변동</td></tr>
+          <tr><td>대립가설 H₁</td><td>변이형 편차가 재현 변동성을 초과한다</td></tr>
+          <tr><td><b>음성 대조군</b></td><td><b>동일 서열의 모델 쌍</b> — 변이가 없으므로 관측 편차는 전부 모델 변동</td></tr>
+          <tr><td>검정</td><td>Mann–Whitney U · α = 0.05</td></tr>
+          <tr><td>통제 변수</td><td>동일 도구 · 동일 구간 · 시드 고정 · 동일 샘플 수</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px">구현 현황</h3>
+        <table>
+          <tr><th>기능</th><th class="n">상태</th></tr>
+          <tr><td>UniProt 조회 · 잔기 검증 <span style="color:var(--muted)">(임의 accession)</span></td><td class="n"><b>실동작</b></td></tr>
+          <tr><td>변이 서열 생성 · 입력 파일 배포</td><td class="n"><b>실동작</b></td></tr>
+          <tr><td>결과 ZIP 업로드 → 편차 계산 · 검정</td><td class="n"><b>실동작</b></td></tr>
+          <tr><td>3D 구조 뷰어 (Mol*)</td><td class="n"><b>실동작</b></td></tr>
+          <tr><td>구조 예측 실행</td><td class="n" style="color:var(--muted)">미구현 · GPU</td></tr>
+        </table>
+        <div class="note" style="margin-top:12px"><b>서비스 경계</b> — 변이의 병원성·기능 변화·손상 부위를
+          판정하지 않는다. <b>예측값의 증거 사용 적합성만 판정</b>하는 선별(triage) 도구다.</div>
+      </div>
+    </div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<!-- ═══ 화면 슬라이드 ═══ -->
+<section class="slide">
+  <div class="sh"><span class="no">03</span><h2>화면 · 홈</h2>
+    <span class="sub">가치 제안 · 3단계 절차 · 수록 사례 진입</span></div>
+  <div class="sb">
+    <div class="shotwrap"><img src="shots/s1.png"></div>
+    <div class="side"><h3>요약 설명</h3><ol class="sum">
+      <li><b>분야 표기</b><span class="d">AI Structural Biology &amp; Prediction Reliability</span></li>
+      <li><b>서비스 제목</b><span class="d">기반 기술과 대상, 기능을 한 문장으로 제시</span></li>
+      <li><b>검정 원리 요약</b><span class="d">음성 대조군 확보 → 편차 비교 → 비모수 검정</span></li>
+      <li><b>진입 동선</b><span class="d">[분석 시작하기] 주 CTA · [방법론 보기] 보조</span></li>
+      <li><b>3단계 절차 카드</b><span class="d">기준 반복 측정 → 변이 비교 → 유의성 판정</span></li>
+      <li><b>수록 사례 4건</b><span class="d">클릭 시 해당 accession·변이가 입력된 분석 화면으로 이동</span></li>
+      <li><b>해석 시 유의사항</b><span class="d">서비스 경계를 상시 노출. 방법론 화면으로 연결</span></li>
+    </ol>
+    <div class="note"><b>설계 의도</b> — 논거와 한계는 방법론 화면으로 분리하고,
+      홈은 가치 제안과 진입 동선만 남겨 워크플로우 중심으로 구성했다.</div></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<section class="slide">
+  <div class="sh"><span class="no">04</span><h2>화면 · 분석</h2>
+    <span class="sub">UniProt 실시간 조회 · 잔기 대조 검증 · 입력 파일 생성</span></div>
+  <div class="sb">
+    <div class="shotwrap"><img src="shots/s2.png"></div>
+    <div class="side"><h3>요약 설명</h3><ol class="sum">
+      <li><b>UniProt accession 입력</b><span class="d">REST API 직접 조회. 임의 단백질 가능</span></li>
+      <li><b>조회 결과</b><span class="d">단백질명 · 길이 · 신호펩타이드 · 도메인 · TM 구간 표시</span></li>
+      <li><b>변이 표기 입력</b><span class="d">전구체 번호 기준 [야생형][위치][변이형]</span></li>
+      <li><b>잔기 대조 검증</b><span class="d">불일치 시 진행 차단 및 정정안 제시. dbSNP ID 자동 매칭</span></li>
+      <li><b>생성된 서열</b><span class="d">야생형·변이형 병치, 상이 잔기 1개만 강조</span></li>
+      <li><b>입력 파일 배포</b><span class="d">FASTA · AlphaFold Server JSON · Boltz-2 YAML</span></li>
+      <li><b>직접 예측 워크플로우</b><span class="d">파일 내려받기 → AF Server 예측 → 결과 ZIP 업로드</span></li>
+    </ol>
+    <div class="warn"><b>검증 사례</b> — PILRA 에 <span class="mono">G78R</span> 입력 시
+      정본 서열 78번이 이미 Arg 이므로 차단되고 <span class="mono">R78G</span> 를 제시한다.
+      본 재현에서 실제로 이 오류를 사전 차단한 로직을 이식했다.</div></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<section class="slide">
+  <div class="sh"><span class="no">05</span><h2>화면 · 구조 검증</h2>
+    <span class="sub">국소 RMSD 기반 감별력 판정 · 원자료에서 실시간 재계산</span></div>
+  <div class="sb">
+    <div class="shotwrap"><img src="shots/s3.png"></div>
+    <div class="side"><h3>요약 설명</h3><ol class="sum">
+      <li><b>사례 전환</b><span class="d">수록 사례 3건 및 업로드 결과 탭</span></li>
+      <li><b>판정</b><span class="d">재현 변동성 초과 / 내 — 중립색으로 표기해 시스템 오류와 구분</span></li>
+      <li><b>핵심 지표</b><span class="d">p-value 와 편차 Δ 를 상단에 배치</span></li>
+      <li><b>세부 수치</b><span class="d">기준 반복 변동 · 범위 · 변이 비교 편차 · 비율</span></li>
+      <li><b>구조 오버레이</b><span class="d">야생형·변이형 3D 중첩 (Mol*)</span></li>
+      <li><b>분포 도표</b><span class="d">두 군의 분포를 동일 축에 표시. 겹침 여부를 직관적으로 제시</span></li>
+      <li><b>측정 조건</b><span class="d">모델 · 구간 · 시드 · 정렬 범위 · 컷오프 — 재현 가능하도록 전량 표기</span></li>
+    </ol>
+    <div class="note"><b>실시간 계산</b> — 통계량은 하드코딩되어 있지 않다.
+      원자료 CSV(구조 편차 135쌍)를 브라우저가 직접 읽어 Mann–Whitney U 를 계산한다.</div></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<section class="slide">
+  <div class="sh"><span class="no">06</span><h2>화면 · 결합 인터페이스 검증</h2>
+    <span class="sub">TREM2 + Aβ42 복합체 · 구조 검증과 동일 절차 적용</span></div>
+  <div class="sb">
+    <div class="shotwrap"><img src="shots/s4.png"></div>
+    <div class="side"><h3>요약 설명</h3><ol class="sum">
+      <li><b>판정</b><span class="d">ipTM 기준 재현 변동성 초과 / 내</span></li>
+      <li><b>핵심 지표</b><span class="d">p-value 와 ipTM 차이 Δ · 기준 분산 폭 병기</span></li>
+      <li><b>복합체 구조</b><span class="d">야생형·변이형 복합체 3D 중첩</span></li>
+      <li><b>ipTM 분포</b><span class="d">구조 검증과 동일 형식으로 두 군 비교</span></li>
+      <li><b>지표 정의 고지</b><span class="d">ipTM 은 결합 자유에너지가 아닌 인터페이스 신뢰도 지표</span></li>
+    </ol>
+    <div class="warn"><b>범위 한정</b> — Boltz-2 affinity head 는 small-molecule 전용이며
+      펩타이드(Aβ42)에 적용되지 않는다. 따라서 <b>결합 친화도 수치는 산출하지 않으며</b>
+      인터페이스 예측 신뢰도만 비교한다.</div>
+    <div class="note" style="margin-top:12px"><b>문헌 대조</b> — Zhao et al. (2018) <i>Neuron</i> ·
+      Zhong et al. (2018) 은 R62H 가 Aβ 결합을 감소시킨다고 보고하나 본 모델은 감별하지 못했다.
+      실험적 접근이 요구되는 사례로 분류된다.</div></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<section class="slide">
+  <div class="sh"><span class="no">07</span><h2>화면 · 리포트 / 방법론</h2>
+    <span class="sub">전 사례 판정 요약 · 검정 설계 및 서비스 범위</span></div>
+  <div class="sb">
+    <div class="shotwrap"><img src="shots/s5.png"></div>
+    <div class="side"><h3>요약 설명 — 리포트</h3><ol class="sum">
+      <li><b>판정 요약표</b><span class="d">전 사례의 기준 변동 · 편차 · 비율 · p · 판정</span></li>
+      <li><b>문헌 대조</b><span class="d">보고된 실험 결과와 모델 판정을 병치. 불일치 시 명시</span></li>
+      <li><b>재현 정보</b><span class="d">모델 · 시드 · 샘플 수 · 검정 · 원자료 경로</span></li>
+    </ol>
+    <h3 style="margin-top:16px">방법론 화면</h3>
+    <p style="font-size:12.5px;color:var(--ink2);line-height:1.7">
+      검정 설계(H₀/H₁ · 음성 대조군 · 통제 변수), 존재 근거, 서비스 범위표,
+      한계 4항을 별도 화면으로 분리했다. 홈에서 과도한 설명을 덜어내되
+      근거는 한 번의 클릭으로 접근 가능하도록 구성했다.</p>
+    <div class="note"><b>오독 방지</b> — 산출되는 정렬은 <b>증거 사용 가능성 순위이며
+      생물학적 중요도 순위가 아니다.</b> CD33 R69G 는 원논문이 AD 위험 증가로 지목한 변이이나
+      본 지표에서는 최하위다.</div></div>
+  </div>
+  <div class="sf">BlindSpot · 서비스 슬라이드</div>
+</section>
+
+<script>
+const i=new URLSearchParams(location.search).get('i');
+if(i!==null){document.querySelectorAll('.slide').forEach((s,k)=>{
+  if(k!=+i) s.style.display='none';});
+  document.body.style.background='#fff';document.body.style.margin='0';
+  document.querySelectorAll('.slide').forEach(s=>s.style.margin='0');}
+</script>
+</body></html>
