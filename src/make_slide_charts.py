@@ -201,9 +201,68 @@ def slide13() -> Path:
     return out
 
 
+# ===========================================================================
+# 슬라이드 14 — Boltz-2 결합 축 (ipTM)
+# ===========================================================================
+def slide14() -> Path:
+    import csv as _csv
+    rows = list(_csv.DictReader((RESULTS / "boltz_iptm.csv").open()))
+    wt  = [float(r["iptm"]) for r in rows if r["allele"] == "WT"]
+    mut = [float(r["iptm"]) for r in rows if r["allele"] == "R62H"]
+    _, p = mannwhitneyu(mut, wt, alternative="two-sided")
+
+    fig, ax = plt.subplots(figsize=(10, 4.6), dpi=200)
+    fig.subplots_adjust(left=0.17, right=0.80, top=0.68, bottom=0.22)
+    rng = np.random.default_rng(0)
+
+    for vals, y, color, lab in ((wt, 1.0, C_NOISE, "WT"),
+                                (mut, 0.0, C_SIGNAL, "R62H")):
+        jit = rng.uniform(-0.17, 0.17, len(vals))
+        ax.scatter(vals, np.full(len(vals), y) + jit, s=42, color=color,
+                   alpha=0.6, linewidths=1.2, edgecolors=SURFACE, zorder=3)
+        m = st.median(vals)
+        ax.plot([m, m], [y - 0.30, y + 0.30], color=color, lw=2.8, zorder=4)
+        ax.text(m, y + 0.40, f"{m:.3f}", fontsize=9.5, color=color,
+                ha="center", va="bottom", fontweight="bold")
+
+    ax.set_ylim(-0.62, 1.66)
+    ax.set_yticks([1.0, 0.0])
+    ax.set_yticklabels(["TREM2 WT\n+ Aβ42", "TREM2 R62H\n+ Aβ42"],
+                       fontsize=10, color=INK_2)
+    ax.tick_params(axis="y", length=0)
+    ax.tick_params(axis="x", colors=INK_2, labelsize=9)
+    ax.grid(axis="x", color=GRID, lw=0.8, zorder=0)
+    ax.set_axisbelow(True)
+    for sp in ("top", "right", "left"):
+        ax.spines[sp].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.set_xlabel("ipTM — 두 사슬 인터페이스 신뢰도 (0~1, 높을수록 결합 확신)",
+                  fontsize=10, color=INK_2, labelpad=8)
+
+    ax.text(1.03, 0.70, "구분 안 됨", transform=ax.transAxes, fontsize=11,
+            color="#b02020", fontweight="bold", va="center")
+    ax.text(1.03, 0.32, f"p = {p:.2f}", transform=ax.transAxes, fontsize=9.5,
+            color=INK_2, va="center")
+
+    fig.text(0.17, 0.93, "Boltz-2도 이 변이를 감별하지 못했다",
+             fontsize=13.5, color=C_NAVY, fontweight="bold", ha="left")
+    fig.text(0.17, 0.855,
+             f"시드 3 × 모델 5 = 각 {len(wt)}개 · 세로선 = 중앙값 · Mann–Whitney U 양측",
+             fontsize=9, color=INK_2, ha="left")
+    fig.text(0.17, 0.055,
+             "복합체 예측 자체는 성공했다 (ipTM 0.85는 높은 값). 변이 감별력만 없다.  "
+             "Bret et al. 2026의 결합부위 변이 둔감성 보고와 일치.",
+             fontsize=8.5, color=INK_MUTED, ha="left")
+
+    out = FIG_DIR / "slide14_boltz_iptm.png"
+    fig.savefig(out, dpi=200)
+    plt.close(fig)
+    return out
+
+
 def main() -> int:
     FIG_DIR.mkdir(parents=True, exist_ok=True)
-    for f in (slide11(), slide13()):
+    for f in (slide11(), slide13(), slide14()):
         print(f"  → {f.relative_to(ROOT)}")
     return 0
 
