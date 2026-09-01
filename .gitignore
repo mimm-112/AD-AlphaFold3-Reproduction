@@ -1,0 +1,26 @@
+# 재생성 가능한 대용량 파일 — 저장소에 넣지 않는다
+# (MSA는 --use_msa_server 로, PAE 행렬은 예측 재실행으로 복원된다)
+**/msas/
+**/templates/
+*_full_data_*.json
+*.npz
+*.zip
+
+# 예측 결과 원본 폴더는 정리본만 커밋한다 (아래 data/ 참조)
+folds_*/
+notebooks/boltz_results/
+
+# 시스템
+.DS_Store
+.Rhistory
+__pycache__/
+*.pyc
+inputs/seqs/_uniprot/
+
+# 공개 부적절 — 타인 자료 / 저작권 PDF / 개인 메모
+참고_이전기수 자료/
+참고_*.png
+*.pdf
+CLAUDE_GPX4_old.md.bak
+CLAUDE.md
+발표*/

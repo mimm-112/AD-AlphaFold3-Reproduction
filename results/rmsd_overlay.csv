@@ -1,0 +1,4 @@
+gene,mutation,wt_model,mut_model,align_range,rmsd_domain_CA,rmsd_fulllength_CA,overlay_png,zoom_png
+CD33,R69G,fold_cd33_full_wt_model_0.cif,fold_cd33_full_r69g_model_0.cif,19-135,0.107,17.085,figures/CD33_overlay.png,figures/CD33_zoom.png
+PILRA,R78G,fold_pilra_full_wt_model_0.cif,fold_pilra_full_r78g_model_0.cif,32-150,0.276,31.954,figures/PILRA_overlay.png,figures/PILRA_zoom.png
+TREM2,R62H,fold_trem2_full_wt_model_0.cif,fold_trem2_full_r62h_model_0.cif,29-112,0.199,16.159,figures/TREM2_overlay.png,figures/TREM2_zoom.png

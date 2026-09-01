@@ -1,0 +1,13 @@
+name,gene,uniprot,rsid,mutation,allele,construct,range_start,range_end,length,mut_index_in_construct,fasta
+CD33_full_WT,CD33,P20138,rs2455069,R69G,WT,full,1,364,364,69,inputs/seqs/CD33_full_WT.fasta
+CD33_full_R69G,CD33,P20138,rs2455069,R69G,R69G,full,1,364,364,69,inputs/seqs/CD33_full_R69G.fasta
+CD33_dom_WT,CD33,P20138,rs2455069,R69G,WT,dom,19,135,117,51,inputs/seqs/CD33_dom_WT.fasta
+CD33_dom_R69G,CD33,P20138,rs2455069,R69G,R69G,dom,19,135,117,51,inputs/seqs/CD33_dom_R69G.fasta
+PILRA_full_WT,PILRA,Q9UKJ1,rs1859788,R78G,WT,full,1,303,303,78,inputs/seqs/PILRA_full_WT.fasta
+PILRA_full_R78G,PILRA,Q9UKJ1,rs1859788,R78G,R78G,full,1,303,303,78,inputs/seqs/PILRA_full_R78G.fasta
+PILRA_dom_WT,PILRA,Q9UKJ1,rs1859788,R78G,WT,dom,32,150,119,47,inputs/seqs/PILRA_dom_WT.fasta
+PILRA_dom_R78G,PILRA,Q9UKJ1,rs1859788,R78G,R78G,dom,32,150,119,47,inputs/seqs/PILRA_dom_R78G.fasta
+TREM2_full_WT,TREM2,Q9NZC2,rs143332484,R62H,WT,full,1,230,230,62,inputs/seqs/TREM2_full_WT.fasta
+TREM2_full_R62H,TREM2,Q9NZC2,rs143332484,R62H,R62H,full,1,230,230,62,inputs/seqs/TREM2_full_R62H.fasta
+TREM2_dom_WT,TREM2,Q9NZC2,rs143332484,R62H,WT,dom,19,130,112,44,inputs/seqs/TREM2_dom_WT.fasta
+TREM2_dom_R62H,TREM2,Q9NZC2,rs143332484,R62H,R62H,dom,19,130,112,44,inputs/seqs/TREM2_dom_R62H.fasta
