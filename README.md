@@ -1,4 +1,4 @@
-# 알츠하이머 인과 단백질 해독 — 새로운 멘델 무작위화 방법과 AlphaFold3를 통한 3D 구조 예측
+# [알츠하이머 인과 단백질 해독 — 새로운 멘델 무작위화 방법과 AlphaFold3를 통한 3D 구조 예측] 논문 기반 서비스 플랫폼 개발
 
 **원논문** Yao, M. *et al.* (2024) *Deciphering proteins in Alzheimer's disease: A new Mendelian
 randomization method integrated with AlphaFold3 for 3D structure prediction.*
